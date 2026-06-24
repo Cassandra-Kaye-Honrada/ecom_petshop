@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='customer/style.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='fontawesome/css/all.min.css')}}"
+    />
+    <script src="{{url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+  </head>
+  <body>
+    <nav class="plantify-sidebar" id="plantifySidebar">
+      <div class="sidebar-header">
+        <a class="logo" href="#">
+          <i class="fas fa-leaf"></i>
+          Plantify
+        </a>
+        <div class="subtitle">Garden Store</div>
+      </div>
+
+      <div class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <div class="nav-item">
+          <a href="#" class="nav-link active">
+            <i class="fas fa-home"></i>
+            Home
+          </a>
+        </div>
+        <div class="nav-section">Products</div>
+        <div class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="fas fa-seedling"></i>
+            Products
+          </a>
+        </div>
+        <div class="nav-section">Contact</div>
+        <div class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="fas fa-phone"></i>
+            Contact
+          </a>
+        </div>
+        <div class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="fas fa-book"></i>
+            About
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="nav-actions">
+          {% if session.get('user') %}
+          <div class="user-dropdown">
+            <button class="icon-btn" onclick="toggleUserDropdown()">
+              <div class="user-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <span class="user-name"
+                >{{ session['user']['firstname'] }} {{
+                session['user']['lastname'] }}</span
+              >
+              <i class="fas fa-chevron-down ms-1"></i>
+            </button>
+            <div class="dropdown-menu" id="userDropdown">
+              <div class="dropdown-header">
+                <i class="fas fa-user-circle me-2"></i>{{
+                session['user']['firstname'] }} {{ session['user']['lastname']
+                }}
+              </div>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">
+                <i class="fas fa-user-edit me-2 text-primary"></i>My Profile
+              </a>
+              <a class="dropdown-item" href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+              </a>
+            </div>
+          </div>
+          {% else %}
+          <a class="icon-btn" href="{{ url_for('login') }}">Login/Register</a>
+          {% endif %}
+
+          <a class="icon-btn" href="#" style="position: relative">
+            <i class="fas fa-shopping-cart"></i>
+            {% if session.get('cart') %}
+            <span id="cartBadge" class="cart-badge show">
+              {{ session['cart']|length }}{% else %}
+            </span>
+            {% endif %}
+          </a>
+        </div>
+      </div>
+    </nav>
+    <script src="{{url_for('static', filename='customer/script.js')}}"></script>
+  </body>
+</html>

@@ -1,0 +1,825 @@
+{% extends "customer/layouts/base.html" %} {% block content %}
+
+<style>
+  .checkout-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .checkout-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #4D4C45;
+    margin-bottom: 30px;
+  }
+
+  .checkout-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(77, 76, 69, 0.08);
+    padding: 30px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(248, 156, 32, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .checkout-card:hover {
+    box-shadow: 0 8px 30px rgba(248, 156, 32, 0.15);
+    border-color: rgba(248, 156, 32, 0.2);
+  }
+
+  .checkout-card.order-summary {
+    position: sticky;
+    top: 100px;
+  }
+
+  .card-header-custom {
+    font-size: 20px;
+    font-weight: 600;
+    color: #4D4C45;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(248, 156, 32, 0.15);
+  }
+
+  .card-header-custom i {
+    color: #F89C20;
+    margin-right: 8px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #4D4C45;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #F89C20;
+    box-shadow: 0 0 0 3px rgba(248, 156, 32, 0.1);
+  }
+
+  .alert-info {
+    background: rgba(248, 156, 32, 0.08);
+    border-left: 4px solid #F89C20;
+    padding: 16px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+
+  .alert-info strong {
+    color: #F89C20;
+  }
+
+  .order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .order-item:last-child {
+    border-bottom: none;
+  }
+
+  .order-item-name {
+    color: #4D4C45;
+    font-size: 15px;
+  }
+
+  .order-item-price {
+    color: #F89C20;
+    font-weight: 600;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    font-size: 15px;
+    color: #4D4C45;
+  }
+
+  .summary-divider {
+    border-top: 2px solid rgba(248, 156, 32, 0.15);
+    margin: 16px 0;
+  }
+
+  .summary-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #F89C20;
+  }
+
+  .btn-place-order {
+    background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+    color: white;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+  }
+
+  .btn-place-order:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(248, 156, 32, 0.4);
+  }
+
+  .btn-place-order:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-back {
+    background: white;
+    color: #F89C20;
+    padding: 14px 32px;
+    border: 2px solid #F89C20;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .btn-back:hover {
+    background: #F89C20;
+    color: white;
+    transform: translateY(-3px);
+  }
+
+  .address-display {
+    background: rgba(248, 156, 32, 0.08);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #F89C20;
+  }
+
+  .address-display h6 {
+    font-weight: 600;
+    color: #4D4C45;
+    margin-bottom: 8px;
+  }
+
+  .address-display p {
+    margin: 4px 0;
+    color: #4D4C45;
+    opacity: 0.8;
+  }
+
+  .address-display i {
+    color: #F89C20;
+    margin-right: 8px;
+  }
+
+  .payment-method-card {
+    background: rgba(248, 156, 32, 0.05);
+    padding: 16px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 2px solid rgba(248, 156, 32, 0.15);
+  }
+
+  .payment-method-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin: 8px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+  }
+
+  .payment-method-option:hover {
+    border-color: #F89C20;
+    background: rgba(248, 156, 32, 0.05);
+  }
+
+  .payment-method-option input[type="radio"] {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+    accent-color: #F89C20;
+  }
+
+  .payment-method-option.selected {
+    border-color: #F89C20;
+    background: rgba(248, 156, 32, 0.1);
+  }
+
+  .payment-method-option i {
+    color: #F89C20;
+  }
+
+  .payment-card {
+    background-color: rgba(248, 156, 32, 0.08);
+    border: 1px solid rgba(248, 156, 32, 0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .payment-card h6 {
+    font-size: 0.95rem;
+    color: #4D4C45;
+  }
+
+  .payment-card p {
+    font-size: 0.8rem;
+    color: #4D4C45;
+    opacity: 0.8;
+  }
+
+  .payment-card i {
+    color: #F89C20;
+  }
+
+  .upload-area {
+    border: 2px dashed rgba(248, 156, 32, 0.3);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 1rem;
+    background: rgba(248, 156, 32, 0.05);
+    display: none;
+  }
+
+  .upload-none i {
+    color: #F89C20;
+    font-size: 48px;
+  }
+
+  .upload-success i {
+    color: #F89C20;
+    font-size: 48px;
+  }
+
+  .upload-card img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+  }
+
+  .upload-delete i {
+    color: #dc3545;
+    font-size: 24px;
+    border: none;
+    padding: 0.25rem 0.4rem;
+  }
+
+  .btn-browse {
+    background-color: transparent;
+    color: #F89C20;
+    border: 2px solid #F89C20;
+    font-size: 1rem;
+    transition: all 0.2s ease-in-out;
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .btn-browse:hover {
+    background-color: #F89C20;
+    color: white;
+    border-color: #F89C20;
+  }
+
+  @media (max-width: 768px) {
+    .checkout-row {
+      flex-direction: column;
+    }
+  }
+
+  .toast-notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 16px 20px;
+    min-width: 300px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .toast-notification.success {
+    border-left: 4px solid #28a745;
+  }
+
+  .toast-notification.error {
+    border-left: 4px solid #dc3545;
+  }
+
+  .toast-icon {
+    font-size: 24px;
+  }
+
+  .toast-content {
+    flex: 1;
+  }
+
+  .toast-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #4D4C45;
+  }
+
+  .toast-message {
+    margin: 0;
+    font-size: 14px;
+    color: #4D4C45;
+    opacity: 0.8;
+  }
+
+  .toast-close {
+    background: none;
+    border: none;
+    color: #4D4C45;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .toast-close:hover {
+    opacity: 1;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+</style>
+
+<div class="checkout-container">
+  <h1 class="checkout-title"><i class="fas fa-shopping-bag"></i> Checkout</h1>
+
+  <div class="row checkout-row">
+    <!-- Shipping Information -->
+    <div class="col-md-8">
+      <div class="checkout-card">
+        <h5 class="card-header-custom">
+          <i class="fas fa-map-marker-alt"></i> Shipping Information
+        </h5>
+
+        <!-- Display Current Address -->
+        <div class="address-display">
+          <h6>Delivery To:</h6>
+          <p>
+            <i class="fas fa-user"></i>
+            <strong
+              >{{ user_info.firstname }} {{ user_info.middlename }} {{
+              user_info.lastname }}</strong
+            >
+          </p>
+          <p>
+            <i class="fas fa-location-dot"></i> {{ user_info.barangay_name }},
+            {{ user_info.municipality_name }}, {{ user_info.province_name }}
+          </p>
+          <p><i class="fas fa-phone"></i> {{ user_info.phone }}</p>
+        </div>
+
+        <form id="checkoutForm">
+          <div class="form-group">
+            <label for="shippingAddress" class="form-label">
+              Complete Delivery Address *
+            </label>
+            <textarea
+              name="shippingAddress"
+              id="shippingAddress"
+              class="form-control"
+              rows="4"
+              required
+              placeholder="Enter your complete delivery address (House/Building No., Street, Landmark, etc.)..."
+            ></textarea>
+            <small class="text-muted">
+              Please provide detailed instructions to help our delivery partner
+              find you easily.
+            </small>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-group">
+            <label class="form-label">Payment Method *</label>
+            <div class="payment-method-card">
+              <div class="payment-method-option" onclick="selectPayment('COD')">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  id="paymentCOD"
+                  value="COD"
+                  checked
+                />
+                <label
+                  for="paymentCOD"
+                  style="cursor: pointer; margin: 0; width: 100%"
+                >
+                  <strong
+                    ><i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                    (COD)</strong
+                  ><br />
+                  <small
+                    >Pay when your order is delivered to your address.</small
+                  >
+                </label>
+              </div>
+              <div class="payment-method-option" onclick="selectPayment('OL')">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  id="paymentOL"
+                  value="OL"
+                />
+                <label
+                  for="paymentOL"
+                  style="cursor: pointer; margin: 0; width: 100%"
+                >
+                  <strong
+                    ><i class="fas fa-credit-card"></i> Online Payment</strong
+                  ><br />
+                  <small
+                    >Pay using GCash or Bank Transfer (Upload proof after
+                    order).</small
+                  >
+                  <div
+                    class="payment-option d-none d-flex align-items-stretch gap-2 mt-1"
+                  >
+                    <div class="payment-card d-flex flex-column flex-fill">
+                      <h6 class="mb-1 fw-bold">
+                        <i class="fas fa-wallet"></i> GCash
+                      </h6>
+                      <p class="mb-1 text-muted">
+                        <strong>Account Name:</strong> ABC Store
+                      </p>
+                      <p class="mb-2 text-muted">
+                        <strong>Mobile Number:</strong> 0912-345-6789
+                      </p>
+                    </div>
+                    <div class="payment-card d-flex flex-column flex-fill">
+                      <h6 class="mb-1 fw-bold">
+                        <i class="fas fa-building-columns"></i> Bank Transfer
+                      </h6>
+                      <p class="mb-1 text-muted">
+                        <strong>Bank Name:</strong> BDO
+                      </p>
+                      <p class="mb-1 text-muted">
+                        <strong>Account Name:</strong> ABC Store
+                      </p>
+                      <p class="mb-0 text-muted">
+                        <strong>Account Number:</strong> 1234-5678-90
+                      </p>
+                    </div>
+                  </div>
+                  <div class="upload-area w-100">
+                    <input
+                      type="file"
+                      id="fileInput"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      hidden
+                    />
+                    <div class="upload-none">
+                      <i class="fas fa-cloud-arrow-up"></i>
+                      <p class="text-muted fw-bold mb-0">
+                        Drag and drop your proof of payment here
+                      </p>
+                      <p class="text-muted my-1" style="font-size: 0.7rem">
+                        Supported: JPG, PNG, PDF
+                      </p>
+                      <p class="text-muted fw-bold mb-0">or</p>
+                      <button
+                        type="button"
+                        class="btn px-4 py-1 rounded-1 mt-1 btn-browse"
+                      >
+                        Browse files
+                      </button>
+                      <p class="text-muted m-0" style="font-size: 0.6rem">
+                        Maximum size: 2MB
+                      </p>
+                    </div>
+                    <div class="upload-success d-none">
+                      <i class="fas fa-circle-check"></i>
+                      <p class="text-muted fw-bold mt-3 mb-0">
+                        Proof of Payment Uploaded!
+                      </p>
+                      <p class="text-muted my-1" style="font-size: 0.7rem">
+                        Your receipt has been attached successfully.
+                      </p>
+                      <div
+                        class="upload-card d-flex align-items-center p-2 my-3 border rounded"
+                      >
+                        <div class="me-2 flex-shrink-0">
+                          <img
+                            src=""
+                            id="upload-img"
+                            alt="receipt"
+                            class="img-fluid rounded"
+                          />
+                        </div>
+
+                        <div
+                          class="d-flex flex-column align-items-start flex-grow-1"
+                        >
+                          <p
+                            class="mb-1 fw-bold"
+                            id="upload-name"
+                            style="font-size: 0.9rem"
+                          ></p>
+                          <p
+                            class="mb-0 text-muted"
+                            id="upload-size"
+                            style="font-size: 0.75rem"
+                          ></p>
+                        </div>
+
+                        <button
+                          type="button"
+                          id="btn-delete"
+                          class="btn btn-sm p-0 upload-delete"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-place-order" id="placeOrderBtn">
+            <i class="fas fa-check-circle"></i> Place Order
+          </button>
+          <a href="{{ url_for('cart') }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Cart
+          </a>
+        </form>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-md-4">
+      <div class="checkout-card order-summary">
+        <h5 class="card-header-custom">
+          <i class="fas fa-receipt"></i> Order Summary
+        </h5>
+
+        <!-- Cart Items -->
+        {% for item in cart_items %}
+        <div class="order-item">
+          <span class="order-item-name">
+            {{ item.product_name }} x {{ item.quantity }}
+          </span>
+          <span class="order-item-price"
+            >₱{{ '%.2f'|format(item.subtotal) }}</span
+          >
+        </div>
+        {% endfor %}
+
+        <div class="summary-divider"></div>
+
+        <!-- Totals -->
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <span>₱{{ '%.2f'|format(subtotal) }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping Fee:</span>
+          <span>₱{{ '%.2f'|format(shipping) }}</span>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-total">
+          <span>Total:</span>
+          <span>₱{{ '%.2f'|format(total) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+  function selectPayment(method) {
+    // Remove selected class from all options
+    $(".payment-method-option").removeClass("selected");
+    $(".upload-area").hide();
+    $(".payment-option").addClass("d-none");
+
+    // Add selected class to clicked option
+    if (method === "COD") {
+      $("#paymentCOD").prop("checked", true);
+      $("#paymentCOD").closest(".payment-method-option").addClass("selected");
+    } else {
+      $("#paymentOL").prop("checked", true);
+      $("#paymentOL").closest(".payment-method-option").addClass("selected");
+      $(".upload-area").show();
+      $(".payment-option").removeClass("d-none");
+    }
+  }
+
+  const uploadArea = document.querySelector(".upload-area");
+  const fileInput = document.getElementById("fileInput");
+  const browseBtn = document.querySelector(".btn-browse");
+
+  // Browse button click
+  browseBtn.addEventListener("click", () => fileInput.click());
+
+  // File selected via browse
+  fileInput.addEventListener("change", () => {
+    handleFile(fileInput.files[0]);
+  });
+
+  // Drag events
+  uploadArea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadArea.classList.add("dragging");
+  });
+
+  uploadArea.addEventListener("dragleave", () => {
+    uploadArea.classList.remove("dragging");
+  });
+
+  uploadArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove("dragging");
+
+    const file = e.dataTransfer.files[0];
+
+    const dt = new DataTransfer();
+    dt.items.add(file);
+
+    file.fileInput = dt.files;
+
+    handleFile(file);
+  });
+
+  function handleFile(file) {
+    if (!file) return;
+
+    const fileName = document.getElementById("upload-name");
+    const fileSize = document.getElementById("upload-size");
+    const deleteBtn = document.getElementById("btn-delete");
+    const uploadImg = document.getElementById("upload-img");
+
+    $(".upload-none").addClass("d-none");
+    $(".upload-success").removeClass("d-none");
+    $(".payment-option").addClass("d-none");
+
+    fileName.textContent = file.name;
+    fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + " MB";
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadImg.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    deleteBtn.addEventListener("click", () => {
+      fileInput.value = "";
+      $(".upload-success").addClass("d-none");
+      $(".upload-none").removeClass("d-none");
+      $(".payment-option").removeClass("d-none");
+    });
+  }
+
+  // Initialize selected state
+  $(document).ready(function () {
+    $("#checkoutForm").on("submit", function (e) {
+      e.preventDefault();
+
+      const address = $("#shippingAddress").val().trim();
+      const paymentMethod = $('input[name="paymentMethod"]:checked').val();
+      const receipt = $("#fileInput")[0].files[0];
+
+      if (!address) {
+        showToast("error", "Error", "Please enter your delivery address");
+        return;
+      }
+
+      // Disable button
+      const btn = $("#placeOrderBtn");
+      btn.prop("disabled", true);
+      btn.html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+      const formData = new FormData();
+      formData.append("delivery_address", address);
+      formData.append("payment_method", paymentMethod);
+
+      if (receipt) {
+        formData.append("payment_proof", receipt);
+      }
+
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      $.ajax({
+        url: "{{ url_for('process_checkout') }}",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          if (data.success) {
+            showToast("success", "Success!", data.message);
+
+            // Redirect to orders page after 2 seconds
+            setTimeout(() => {
+              window.location.href = "{{ url_for('orders') }}";
+            }, 2000);
+          } else {
+            alert("error");
+            showToast("error", "Error", data.error || "Failed to place order");
+            btn.prop("disabled", false);
+            btn.html('<i class="fas fa-check-circle"></i> Place Order');
+          }
+        },
+        error: function (xhr) {
+          let errorMessage = "An error occurred. Please try again.";
+          if (xhr.responseJSON && xhr.responseJSON.error) {
+            errorMessage = xhr.responseJSON.error;
+          }
+
+          showToast("error", "Error", errorMessage);
+          btn.prop("disabled", false);
+          btn.html('<i class="fas fa-check-circle"></i> Place Order');
+        },
+      });
+    });
+  });
+
+  function showToast(type, title, message) {
+    const toast = $(`
+      <div class="toast-notification ${type}">
+        <div class="toast-icon ${type}">
+          <i class="fas fa-${
+            type === "success" ? "check-circle" : "exclamation-circle"
+          }"></i>
+        </div>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <p class="toast-message">${message}</p>
+        </div>
+        <button class="toast-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `);
+
+    $("body").append(toast);
+
+    toast.find(".toast-close").on("click", function () {
+      toast.addClass("removing");
+      setTimeout(() => toast.remove(), 300);
+    });
+
+    setTimeout(() => {
+      toast.addClass("removing");
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+</script>
+
+{% endblock %}

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }} - petsup</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='customer/style.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='fontawesome/css/all.min.css')}}"
+    />
+    <style>
+      /* Make body flex container for sticky footer */
+      html {
+        height: 100%;
+      }
+      
+      body {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+      }
+      
+      .header {
+        flex-shrink: 0;
+      }
+      
+      .main-content {
+        flex: 1 0 auto;
+        width: 100%;
+        margin-bottom: 550px;
+      }
+      
+      .cart-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        min-width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .cart-badge.show {
+        opacity: 1;
+      }
+      
+      .cart-badge.empty {
+        display: none;
+      }
+
+      .user-dropdown .dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        background: white;
+        min-width: 200px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        z-index: 1000;
+      }
+
+      .user-dropdown .dropdown-menu.show {
+        display: block;
+      }
+      
+      
+      .footer {
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        color: white;
+        padding: 3rem 0 1.5rem;
+        margin-top: auto;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      }
+      
+      .footer .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+      }
+      
+      .footer-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+      
+      .footer-section h4 {
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .footer-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .footer-section ul li {
+        margin-bottom: 0.5rem;
+      }
+      
+      .footer-section a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+      
+      .footer-section a:hover {
+        color: #fff;
+        padding-left: 5px;
+      }
+      
+      .footer-section p {
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+      }
+      
+      .social-links {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      
+      .social-links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        color: white;
+        transition: all 0.3s ease;
+      }
+      
+      .social-links a:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-3px);
+        padding-left: 0;
+      }
+      
+      .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        padding-top: 1.5rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+      }
+      
+      @media (max-width: 768px) {
+        .footer {
+          padding: 2rem 0 1rem;
+        }
+        
+        .footer-content {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="nav-container">
+        <a class="logo" href="{{ url_for('customer_dashboard') }}">
+          <img src="{{ url_for('static', filename='PETSUP.png') }}" alt="petsup Logo" style="height: 40px;">
+        </a>
+        
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          onclick="toggleMobileMenu()"
+        >
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <nav>
+          <ul class="nav-menu" id="navMenu">
+            <li>
+              <a href="{{ url_for('customer_dashboard') }}"
+                ><i class="fas fa-home me-1"></i>Home</a
+              >
+            </li>
+            <li>
+              <a href="{{ url_for('products') }}"
+                ><i class="fas fa-paw me-1"></i>Products</a
+              >
+            </li>
+            <li>
+              <a href="{{ url_for('contact') }}"
+                ><i class="fas fa-phone me-1"></i>Contact</a
+              >
+            </li>
+            <li>
+              <a href="{{ url_for('about') }}"
+                ><i class="fas fa-book me-1"></i>About</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="nav-actions">
+          {% if session.get('is_loggedin') and session.get('user_role') ==
+          'customer' %}
+          <div class="user-dropdown">
+            <button class="icon-btn" onclick="toggleUserDropdown(event)">
+              <div class="user-avatar"><i class="fas fa-user"></i></div>
+              <span class="d-none d-md-inline">
+                {{ session.user.firstname[0] }}{{ session.user.middlename[0] }}
+                {{ session.user.lastname }}
+              </span>
+              <i class="fas fa-chevron-down ms-1"></i>
+            </button>
+          
+            <div class="dropdown-menu" id="userDropdown">
+              <div class="dropdown-header">
+                <i class="fas fa-user-circle me-2"></i>{{ session.user.firstname }} {{ session.user.lastname }}
+              </div>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="{{ url_for('profile') }}">
+                <i class="fas fa-user-edit me-2 "></i>My Profile
+              </a>
+              <a class="dropdown-item" href="{{ url_for('orders') }}">
+                <i class="fas fa-shopping-bag me-2 "></i>My Orders
+              </a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+              </a>
+            </div>
+          </div>
+          
+          {% else %}
+          <a class="icon-btn" href="{{ url_for('login') }}">Login</a>
+          <a class="icon-btn" href="{{ url_for('register') }}">Register</a>
+          {% endif %}
+
+          <a
+            class="icon-btn"
+            href="{{ url_for('cart') }}"
+            style="position: relative"
+          >
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cartBadge" class="cart-badge {% if cart_count > 0 %}show{% endif %}">{{ cart_count or 0 }}</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %} 
+    {% if messages %} 
+    {% for category, message in messages %}
+    <div
+      class="alert alert-{{ category }} single-flash shadow-sm auto-dismiss position-fixed top-0 end-0 m-3"
+      style="z-index: 9999"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+      ></button>
+    </div>
+    {% endfor %} 
+    {% endif %} 
+    {% endwith %}
+
+    <div class="main-content">
+      <main role="main">{% block content %}{% endblock %}</main>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h4><i class="fas fa-paw"></i> petsup</h4>
+            <p>Your trusted partner for premium</p>
+            <p>pet supplies and care.</p>
+            <p>Everything your furry, feathered,</p>
+            <p>or scaly friend needs.</p>
+            <div class="social-links">
+              <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+              <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+              <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+              <a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a>
+            </div>
+          </div>
+          
+          <div class="footer-section">
+            <h4><i class="fas fa-link"></i> Quick Links</h4>
+            <ul>
+              <li><a href="{{ url_for('customer_dashboard') }}">Home</a></li>
+              <li><a href="{{ url_for('products') }}">Products</a></li>
+              <li><a href="{{ url_for('about') }}">About Us</a></li>
+              <li><a href="{{ url_for('contact') }}">Contact</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h4><i class="fas fa-user-shield"></i> Account</h4>
+            <ul>
+              {% if session.get('is_loggedin') %}
+              <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+              <li><a href="{{ url_for('orders') }}">My Orders</a></li>
+              <li><a href="{{ url_for('cart') }}">Shopping Cart</a></li>
+              {% else %}
+              <li><a href="{{ url_for('login') }}">Login</a></li>
+              <li><a href="{{ url_for('register') }}">Register</a></li>
+              {% endif %}
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h4><i class="fas fa-info-circle"></i> Contact Info</h4>
+            <p><i class="fas fa-map-marker-alt me-2"></i>Urdaneta City, Pangasinan, PH</p>
+            <p><i class="fas fa-envelope me-2"></i>info@petsup.com</p>
+            <p><i class="fas fa-phone me-2"></i>+63 123 456 7890</p>
+            <p><i class="fas fa-clock me-2"></i>Mon-Sat: 8AM - 8PM</p>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; petsup. All rights reserved. Caring for your pets with love.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="{{url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='customer/script.js') }}"></script>
+
+    <script>
+      // Update cart badge dynamically
+      function updateCartBadge(count) {
+        const badge = document.getElementById('cartBadge');
+        if (badge) {
+          badge.textContent = count;
+          if (count > 0) {
+            badge.classList.add('show');
+            badge.classList.remove('empty');
+          } else {
+            badge.classList.remove('show');
+            badge.classList.add('empty');
+          }
+        }
+      }
+
+      // Load cart count on page load
+      function loadCartCount() {
+        fetch('{{ url_for("get_cart_count_route") }}')
+          .then(response => response.json())
+          .then(data => {
+            updateCartBadge(data.count);
+          })
+          .catch(error => console.error('Error loading cart count:', error));
+      }
+
+      // Call on page load
+      document.addEventListener('DOMContentLoaded', loadCartCount);
+    </script>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

@@ -1,0 +1,70 @@
+.enable-border {
+  height: 40px;
+  background-color: white;
+  border-radius: 12px;
+  outline: 1px solid #363f54;
+  color: black;
+}
+
+input:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 2px solid #1a5d4a !important;
+}
+
+input.enable-border.error-field,
+select.enable-border.error-field {
+  outline: 2px solid #dc3545;
+}
+
+.disabled {
+  background-color: #f0f0f0 !important;
+  color: #888888 !important;
+  outline: 1px solid #888888 !important;
+  pointer-events: none;
+}
+
+.auth-button {
+  height: 40px;
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1a5d4a;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.auth-button:hover {
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #147048;
+  transform: translateY(-2px);
+}
+
+.single-flash {
+  animation: fadeSlideUp 4s ease-in-out forwards;
+}
+
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}

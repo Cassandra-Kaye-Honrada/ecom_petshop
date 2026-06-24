@@ -1,0 +1,404 @@
+{% extends "admin/layouts/base.html" %} {% block content %}
+
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Manage Products</h2>
+    <a href="{{ url_for('create_product') }}" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Add New Product
+    </a>
+  </div>
+
+  <!-- Quick Stats & Actions -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body">
+          <h5 class="card-title">Out of Stock</h5>
+          <h3 id="outOfStockCount">0</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-dark">
+        <div class="card-body">
+          <h5 class="card-title">Low Stock</h5>
+          <h3 id="lowStockCount">0</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-secondary text-white">
+        <div class="card-body">
+          <h5 class="card-title">Hidden</h5>
+          <h3 id="hiddenCount">0</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h5 class="card-title">Active</h5>
+          <h3 id="activeCount">0</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <!-- Search and Filter Section -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input
+              type="text"
+              class="form-control"
+              id="searchInput"
+              placeholder="Search products..."
+            />
+          </div>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="categoryFilter">
+            <option value="">All Categories</option>
+            {% set ns = namespace(categories=[]) %}
+            {% for product in products %}
+              {% if product.category not in ns.categories %}
+                {% set ns.categories = ns.categories + [product.category] %}
+              {% endif %}
+            {% endfor %}
+            {% for category in ns.categories %}
+              <option value="{{ category }}">{{ category }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="stockFilter">
+            <option value="">All Stock</option>
+            <option value="out">Out of Stock</option>
+            <option value="low">Low Stock (≤10)</option>
+            <option value="good">Good Stock (>10)</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="statusFilter">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-secondary w-100" id="resetFilters">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Actions Dropdown -->
+      <div class="mb-3">
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            Quick Actions
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="showOutOfStock">Show Out of Stock</a></li>
+            <li><a class="dropdown-item" href="#" id="showLowStock">Show Low Stock</a></li>
+            <li><a class="dropdown-item" href="#" id="showHidden">Show Hidden Products</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="exportProducts">Export to CSV</a></li>
+          </ul>
+        </div>
+        <span class="ms-3 text-muted" id="resultCount"></span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped" id="productsTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Image</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+            {% for product in products %}
+            <tr data-product-name="{{ product.name|lower }}" 
+                data-category="{{ product.category }}" 
+                data-stock="{{ product.quantity }}"
+                data-status="{{ 'active' if product.visibility else 'hidden' }}">
+              <td>{{loop.index}}</td>
+              <td>
+                <img
+                  src="{{ url_for('static', filename=product.img_path) }}"
+                  alt="{{ product.name }}"
+                  style="width: 50px; height: 50px; object-fit: cover"
+                  class="rounded"
+                />
+              </td>
+              <td>{{ product.name }}</td>
+              <td>{{ product.category }}</td>
+              <td>₱{{ product.price }}</td>
+              <td>
+                {% if product.quantity > 10 %}
+                <span class="badge bg-success">{{ product.quantity }}</span>
+                {% elif product.quantity > 0 %}
+                <span class="badge bg-warning text-dark">{{ product.quantity }}</span>
+                {% else %}
+                <span class="badge bg-danger">{{ product.quantity }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if product.visibility %}
+                <span class="badge bg-success">Active</span>
+                {% else %}
+                <span class="badge bg-secondary">Hidden</span>
+                {% endif %}
+              </td>
+              <td>
+                <a
+                  href="{{ url_for('edit_product', product_id=product.product_id) }}"
+                  class="btn btn-sm btn-outline-primary"
+                  title="Edit Product"
+                >
+                  <i class="fas fa-edit"></i>
+                </a>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  data-bs-toggle="modal"
+                  data-bs-target="#deleteProductModal{{ product.product_id }}"
+                  title="Delete Product"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div id="noResults" class="text-center py-4" style="display: none;">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No products found matching your criteria.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for product in products %}
+<div
+  class="modal fade"
+  id="deleteProductModal{{ product.product_id }}"
+  tabindex="-1"
+  aria-labelledby="deleteProductModalLabel{{ product.product_id }}"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5
+          class="modal-title"
+          id="deleteProductModalLabel{{ product.product_id }}"
+        >
+          Confirm Delete
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete
+        <strong>{{product.name}}</strong>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <form
+          action="{{url_for('delete_product', id=product.product_id)}}"
+          method="POST"
+          style="display: inline"
+        >
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchInput');
+  const categoryFilter = document.getElementById('categoryFilter');
+  const stockFilter = document.getElementById('stockFilter');
+  const statusFilter = document.getElementById('statusFilter');
+  const resetBtn = document.getElementById('resetFilters');
+  const tableBody = document.getElementById('productTableBody');
+  const noResults = document.getElementById('noResults');
+  const resultCount = document.getElementById('resultCount');
+
+  // Calculate and update stats
+  function updateStats() {
+    const rows = tableBody.querySelectorAll('tr');
+    let outOfStock = 0, lowStock = 0, hidden = 0, active = 0;
+
+    rows.forEach(row => {
+      const stock = parseInt(row.dataset.stock);
+      const status = row.dataset.status;
+
+      if (stock === 0) outOfStock++;
+      else if (stock <= 10) lowStock++;
+
+      if (status === 'hidden') hidden++;
+      else active++;
+    });
+
+    document.getElementById('outOfStockCount').textContent = outOfStock;
+    document.getElementById('lowStockCount').textContent = lowStock;
+    document.getElementById('hiddenCount').textContent = hidden;
+    document.getElementById('activeCount').textContent = active;
+  }
+
+  // Filter function
+  function filterProducts() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const category = categoryFilter.value;
+    const stock = stockFilter.value;
+    const status = statusFilter.value;
+    
+    const rows = tableBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const productName = row.dataset.productName;
+      const productCategory = row.dataset.category;
+      const productStock = parseInt(row.dataset.stock);
+      const productStatus = row.dataset.status;
+
+      let shouldShow = true;
+
+      // Search filter
+      if (searchTerm && !productName.includes(searchTerm)) {
+        shouldShow = false;
+      }
+
+      // Category filter
+      if (category && productCategory !== category) {
+        shouldShow = false;
+      }
+
+      // Stock filter
+      if (stock) {
+        if (stock === 'out' && productStock !== 0) {
+          shouldShow = false;
+        } else if (stock === 'low' && (productStock === 0 || productStock > 10)) {
+          shouldShow = false;
+        } else if (stock === 'good' && productStock <= 10) {
+          shouldShow = false;
+        }
+      }
+
+      // Status filter
+      if (status && productStatus !== status) {
+        shouldShow = false;
+      }
+
+      row.style.display = shouldShow ? '' : 'none';
+      if (shouldShow) visibleCount++;
+    });
+
+    // Update result count
+    const totalRows = rows.length;
+    resultCount.textContent = `Showing ${visibleCount} of ${totalRows} products`;
+
+    // Show/hide no results message
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    document.getElementById('productsTable').style.display = visibleCount === 0 ? 'none' : '';
+  }
+
+  // Event listeners
+  searchInput.addEventListener('input', filterProducts);
+  categoryFilter.addEventListener('change', filterProducts);
+  stockFilter.addEventListener('change', filterProducts);
+  statusFilter.addEventListener('change', filterProducts);
+
+  resetBtn.addEventListener('click', function() {
+    searchInput.value = '';
+    categoryFilter.value = '';
+    stockFilter.value = '';
+    statusFilter.value = '';
+    filterProducts();
+  });
+
+  // Quick action buttons
+  document.getElementById('showOutOfStock').addEventListener('click', function(e) {
+    e.preventDefault();
+    searchInput.value = '';
+    categoryFilter.value = '';
+    stockFilter.value = 'out';
+    statusFilter.value = '';
+    filterProducts();
+  });
+
+  document.getElementById('showLowStock').addEventListener('click', function(e) {
+    e.preventDefault();
+    searchInput.value = '';
+    categoryFilter.value = '';
+    stockFilter.value = 'low';
+    statusFilter.value = '';
+    filterProducts();
+  });
+
+  document.getElementById('showHidden').addEventListener('click', function(e) {
+    e.preventDefault();
+    searchInput.value = '';
+    categoryFilter.value = '';
+    stockFilter.value = '';
+    statusFilter.value = 'hidden';
+    filterProducts();
+  });
+
+  // Export to CSV
+  document.getElementById('exportProducts').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const rows = tableBody.querySelectorAll('tr');
+    let csv = 'No.,Product Name,Category,Price,Stock,Status\n';
+
+    rows.forEach((row, index) => {
+      if (row.style.display !== 'none') {
+        const cells = row.querySelectorAll('td');
+        const rowData = [
+          index + 1,
+          cells[2].textContent.trim(),
+          cells[3].textContent.trim(),
+          cells[4].textContent.trim(),
+          cells[5].textContent.trim(),
+          cells[6].textContent.trim()
+        ];
+        csv += rowData.join(',') + '\n';
+      }
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products_' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  });
+
+  // Initialize
+  updateStats();
+  filterProducts();
+});
+</script>
+
+{% endblock %}

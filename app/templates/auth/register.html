@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='auth/style.css')}}"
+    />
+    <script src="{{url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #FFF5C8 0%, #FFEDB8 100%);
+      }
+
+      .register-card {
+        width: 720px;
+        background: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(248, 156, 32, 0.15);
+        border: 2px solid rgba(248, 156, 32, 0.1);
+      }
+
+      .logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .logo-container img {
+        height: 60px;
+        transition: transform 0.3s ease;
+      }
+
+      .logo-container img:hover {
+        transform: scale(1.05);
+      }
+
+      .register-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #4D4C45;
+        margin-bottom: 0.5rem;
+      }
+
+      .register-subtitle {
+        font-size: 16px;
+        color: #6c757d;
+      }
+
+      .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #4D4C45;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-control,
+      .form-select {
+        border: 2px solid rgba(248, 156, 32, 0.2);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: #FFFAE0;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: #F89C20;
+        box-shadow: 0 0 0 4px rgba(248, 156, 32, 0.1);
+        background: white;
+        outline: none;
+      }
+
+      .form-control.error-field,
+      .form-select.error-field {
+        border-color: #dc3545;
+        background: #fff5f5;
+      }
+
+      .form-control.error-field:focus,
+      .form-select.error-field:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
+      }
+
+      .form-select.disabled {
+        background: #f5f5f5;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .error-text {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 0.25rem;
+        display: block;
+      }
+
+      .auth-button {
+        background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .auth-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+      }
+
+      .auth-button:hover::before {
+        left: 100%;
+      }
+
+      .auth-button:hover {
+        background: linear-gradient(135deg, #E68A10 0%, #D47A00 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(248, 156, 32, 0.4);
+      }
+
+      .auth-button:active {
+        transform: translateY(0);
+      }
+
+      .login-link {
+        color: #F89C20;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+      }
+
+      .login-link:hover {
+        color: #E68A10;
+        text-decoration: underline;
+      }
+
+      .input-group-wrapper {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .input-group-wrapper .flex-fill {
+        flex: 1;
+      }
+
+      @media (max-width: 768px) {
+        .register-card {
+          width: 100%;
+          margin: 1rem;
+          padding: 1.5rem;
+        }
+
+        .logo-container img {
+          height: 50px;
+        }
+
+        .input-group-wrapper {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="d-flex justify-content-center align-items-center min-vh-100 py-4"
+    >
+      <div class="register-card">
+        <!-- Logo -->
+        <div class="logo-container">
+          <a href="{{ url_for('customer_dashboard') }}">
+            <img src="{{ url_for('static', filename='PETSUP.png') }}" alt="PetSup Logo">
+          </a>
+        </div>
+
+        <div class="text-center mb-4">
+          <h3 class="register-title">Create an account</h3>
+          <p class="register-subtitle">
+            Join us today! Please fill in your details to register.
+          </p>
+        </div>
+
+        <form method="post" class="d-flex flex-column gap-3">
+          <div class="d-flex flex-column">
+            <label class="form-label">Full Name</label>
+            <div class="input-group-wrapper">
+              <div class="flex-fill">
+                <input
+                  type="text"
+                  name="first_name"
+                  class="form-control {% if errors.first_name %} error-field {% endif %}"
+                  value="{{request.form.first_name}}"
+                  placeholder="First Name"
+                />
+                {% if errors.first_name %}
+                <span class="error-text">{{ errors.first_name }}</span>
+                {% endif %}
+              </div>
+              <div class="flex-fill">
+                <input
+                  type="text"
+                  name="middle_name"
+                  class="form-control {% if errors.middle_name %} error-field {% endif %}"
+                  value="{{request.form.middle_name}}"
+                  placeholder="Middle Name"
+                />
+                {% if errors.middle_name %}
+                <span class="error-text">{{ errors.middle_name }}</span>
+                {% endif %}
+              </div>
+              <div class="flex-fill">
+                <input
+                  type="text"
+                  name="last_name"
+                  class="form-control {% if errors.last_name %} error-field {% endif %}"
+                  value="{{request.form.last_name}}"
+                  placeholder="Last Name"
+                />
+                {% if errors.last_name %}
+                <span class="error-text">{{ errors.last_name }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              name="email"
+              class="form-control {% if errors.email %} error-field {% endif %}"
+              value="{{request.form.email}}"
+              placeholder="Enter your email"
+            />
+            {% if errors.email %}
+            <span class="error-text">{{ errors.email }}</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex flex-column">
+            <label class="form-label">Phone Number</label>
+            <input
+              type="text"
+              name="phone"
+              minlength="11"
+              maxlength="11"
+              class="form-control {% if errors.phone %} error-field {% endif %}"
+              value="{{request.form.phone}}"
+              placeholder="09xxxxxxxxx"
+            />
+            {% if errors.phone %}
+            <span class="error-text">{{ errors.phone }}</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex flex-column">
+            <label class="form-label">Address</label>
+            <div class="input-group-wrapper">
+              <div class="flex-fill">
+                <select
+                  id="province"
+                  name="province"
+                  class="form-select {% if errors.province %} error-field {% endif %}"
+                >
+                  <option value="">Select Province</option>
+                  {% for prov in provinces %}
+                  <option value="{{prov['province_id']}}" {% if request.form['province'] == prov['province_id']|string %}selected {% endif %}>
+                    {{prov['province_name']}}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if errors.province %}
+                <span class="error-text">{{ errors.province }}</span>
+                {% endif %}
+              </div>
+
+              <div class="flex-fill">
+                <select
+                  id="municipality"
+                  name="municipality"
+                  class="form-select {% if errors.municipality %} error-field {% endif %} {% if not request.form['province'] %} disabled {% endif %}"
+                >
+                  <option value="">Select Municipality</option>
+                  {% for mun in municipalities %}
+                  <option value="{{mun['municipality_id']}}" {% if request.form['municipality'] == mun['municipality_id']|string %}selected {% endif %}>
+                    {{mun['municipality_name']}}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if errors.municipality %}
+                <span class="error-text">{{ errors.municipality }}</span>
+                {% endif %}
+              </div>
+
+              <div class="flex-fill">
+                <select
+                  id="barangay"
+                  name="barangay"
+                  class="form-select {% if errors.barangay %} error-field {% endif %} {% if not request.form['municipality'] %} disabled {% endif %}"
+                >
+                  <option value="">Select Barangay</option>
+                  {% for brgy in barangays %}
+                  <option value="{{brgy['barangay_id']}}" {% if request.form['barangay'] == brgy['barangay_id']|string %}selected {% endif %}>
+                    {{brgy['barangay_name']}}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if errors.barangay %}
+                <span class="error-text">{{ errors.barangay }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              class="form-control {% if errors.password %} error-field {% endif %}"
+              placeholder="Create a password"
+            />
+            {% if errors.password %}
+            <span class="error-text">{{ errors.password }}</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex flex-column">
+            <label class="form-label">Confirm Password</label>
+            <input
+              type="password"
+              name="confirm_password"
+              class="form-control {% if errors.confirm_password %} error-field {% endif %}"
+              placeholder="Re-enter your password"
+            />
+            {% if errors.confirm_password %}
+            <span class="error-text">{{ errors.confirm_password }}</span>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn w-100 auth-button mt-2">
+            Sign up
+          </button>
+        </form>
+
+        <div
+          class="text-center mt-4"
+          style="font-size: 14px"
+        >
+          <span class="text-muted">Already have an account?</span>
+          <a
+            href="{{url_for('login')}}"
+            class="login-link ms-1"
+          >Log in</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{url_for('static', filename='jquery/jquery.min.js')}}"></script>
+    <script src="{{url_for('static', filename='auth/script.js')}}"></script>
+  </body>
+</html>

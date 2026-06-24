@@ -1,0 +1,68 @@
+{% extends "admin/layouts/base.html" %} 
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h4>Add New Category</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('create_category') }}">
+            <div class="mb-3">
+              <label for="name" class="form-label">Category Name</label>
+              <input
+                type="text"
+                class="form-control {% if errors.name %} error-field {% endif %}"
+                id="name"
+                name="name"
+                value="{{ request.form.name if request.form.name else '' }}"
+              />
+              {% if errors.name %}
+              <span class="text-danger" style="font-size: 12px">{{ errors.name }}</span>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea
+                class="form-control {% if errors.description %} error-field {% endif %}"
+                id="description"
+                name="description"
+                rows="3"
+              >{{ request.form.description if request.form.description else '' }}</textarea>
+              {% if errors.description %}
+              <span class="text-danger" style="font-size: 12px">{{ errors.description }}</span>
+              {% endif %}
+            </div>
+
+            <div class="mb-3 form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="visible"
+                name="visible"
+                {% if request.form.get('visible') or request.method == 'GET' %}checked{% endif %}
+              />
+              <label class="form-check-label" for="visible">
+                Visible to customers
+              </label>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">
+                Create Category
+              </button>
+              <a
+                href="{{ url_for('manage_categories') }}"
+                class="btn btn-secondary"
+                >Cancel</a
+              >
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

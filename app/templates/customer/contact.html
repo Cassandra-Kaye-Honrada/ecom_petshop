@@ -1,0 +1,570 @@
+{% extends "customer/layouts/base.html" %} 
+{% block content %}
+
+<style>
+  /* Page Header */
+  .page-header {
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFF3D0 50%, #FFEDB8 100%);
+    padding: 80px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23F89C20' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+
+  .page-header .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-title {
+    color: #4D4C45;
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    text-align: center;
+    background: linear-gradient(135deg, #4D4C45 0%, #7a868b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .page-subtitle {
+    color: #4D4C45;
+    font-size: 18px;
+    opacity: 0.85;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  /* Products Section */
+  .products-section {
+    padding: 80px 0;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFAE0 100%);
+  }
+
+  .section-header h2 {
+    color: #4D4C45;
+    font-size: 42px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .intro-text {
+    text-align: center;
+    color: #4D4C45;
+    opacity: 0.8;
+    margin-bottom: 50px;
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+
+  /* Contact Cards Grid */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 32px;
+    margin-bottom: 60px;
+  }
+
+  .product-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(77, 76, 69, 0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(248, 156, 32, 0.08);
+  }
+
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(248, 156, 32, 0.15);
+    border-color: rgba(248, 156, 32, 0.2);
+  }
+
+  .product-image {
+    background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product-image i {
+    font-size: 3rem;
+    color: white;
+  }
+
+  .product-info {
+    padding: 24px;
+  }
+
+  .product-name {
+    color: #4D4C45;
+    font-weight: 800;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .product-description {
+    color: #4D4C45;
+    opacity: 0.8;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* CTA Section */
+  .cta-section {
+    background: white;
+    padding: 60px;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 60px;
+    box-shadow: 0 8px 30px rgba(77, 76, 69, 0.08);
+    border: 2px solid rgba(248, 156, 32, 0.1);
+  }
+
+  .cta-section h2 {
+    color: #4D4C45;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  .cta-section p {
+    color: #4D4C45;
+    opacity: 0.8;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    line-height: 1.6;
+  }
+
+  /* Contact Form Container */
+  .contact-form-container {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(77, 76, 69, 0.08);
+    max-width: 700px;
+    margin: 0 auto;
+    border: 2px solid rgba(248, 156, 32, 0.1);
+  }
+
+  .form-header {
+    background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+  }
+
+  .form-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .form-header i {
+    margin-right: 10px;
+  }
+
+  /* Form Styles */
+  .form-body {
+    padding: 40px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    color: #4D4C45;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid rgba(248, 156, 32, 0.2);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: #FFFAE0;
+    color: #4D4C45;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: #F89C20;
+    background: white;
+    box-shadow: 0 4px 15px rgba(248, 156, 32, 0.15);
+  }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: #7a868b;
+    opacity: 0.6;
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .form-select {
+    cursor: pointer;
+  }
+
+  /* Alert Messages */
+  .alert-message {
+    margin-bottom: 20px;
+    display: none;
+    padding: 16px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+
+  .alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+  }
+
+  .alert-message i {
+    margin-right: 8px;
+  }
+
+  /* Submit Button */
+  .details-btn {
+    background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .details-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  .details-btn:hover::before {
+    left: 100%;
+  }
+
+  .details-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(248, 156, 32, 0.4);
+  }
+
+  .details-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .form-submit-wrapper {
+    text-align: center;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 36px;
+    }
+
+    .page-subtitle {
+      font-size: 16px;
+    }
+
+    .section-header h2 {
+      font-size: 32px;
+    }
+
+    .products-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .cta-section {
+      padding: 40px 30px;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+    }
+
+    .form-body {
+      padding: 30px 20px;
+    }
+  }
+</style>
+
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title">🐾 Get in Touch</h1>
+    <p class="page-subtitle">We're here to help you and your furry friends!</p>
+  </div>
+</div>
+
+<div class="products-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Contact Us</h2>
+    </div>
+    <p class="intro-text">
+      Have questions about pet supplies, orders, or need pet care advice?<br>
+      Our team is ready to help you and your beloved companions.
+    </p>
+
+    <!-- Contact Info Cards -->
+    <div class="products-grid">
+      <!-- Address Card -->
+      <div class="product-card">
+        <div class="product-image">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">Visit Our Store</h3>
+          <p class="product-description">
+            <strong>123 Commerce Street</strong><br>
+            Business District<br>
+            City, State 12345
+          </p>
+        </div>
+      </div>
+
+      <!-- Phone Card -->
+      <div class="product-card">
+        <div class="product-image">
+          <i class="fas fa-phone"></i>
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">Call Us</h3>
+          <p class="product-description">
+            <strong>(555) 123-4567</strong><br>
+            <small style="opacity: 0.7;">Mon-Fri: 9AM-6PM</small><br>
+            <small style="opacity: 0.7;">Sat-Sun: 10AM-4PM</small>
+          </p>
+        </div>
+      </div>
+
+      <!-- Email Card -->
+      <div class="product-card">
+        <div class="product-image">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">Email Support</h3>
+          <p class="product-description">
+            <strong>contact@petsupply.com</strong><br>
+            <small style="opacity: 0.7;">We respond within 24 hours</small>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+      <h2>🐕 Ready to Care for Your Pets? 🐈</h2>
+      <p>
+        Whether you're a new pet parent or experienced owner, we're here to support your pet care journey with quality supplies and expert advice.
+      </p>
+      <a href="{{ url_for('products') }}" class="details-btn">
+        <i class="fas fa-shopping-bag"></i> Shop Pet Supplies
+      </a>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="contact-form-container">
+      <!-- Form Header -->
+      <div class="form-header">
+        <h3>
+          <i class="fas fa-paw"></i>Quick Contact Form
+        </h3>
+      </div>
+
+      <!-- Form Body -->
+      <div class="form-body">
+        <form id="contactForm">
+          <!-- Name -->
+          <div class="form-group">
+            <label for="name" class="form-label">
+              Name
+            </label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-input"
+              placeholder="Your full name" 
+              required
+            >
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email" class="form-label">
+              Email
+            </label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input"
+              placeholder="your@email.com" 
+              required
+            >
+          </div>
+
+          <!-- Subject -->
+          <div class="form-group">
+            <label for="subject" class="form-label">
+              Subject
+            </label>
+            <select 
+              id="subject" 
+              name="subject" 
+              class="form-select"
+              required
+            >
+              <option value="">Choose your inquiry type...</option>
+              <option value="pet-care">Pet Care Advice</option>
+              <option value="order">Order Inquiry</option>
+              <option value="product">Product Question</option>
+              <option value="general">General Question</option>
+              <option value="complaint">Complaint/Issue</option>
+            </select>
+          </div>
+
+          <!-- Message -->
+          <div class="form-group">
+            <label for="message" class="form-label">
+              Message
+            </label>
+            <textarea 
+              id="message" 
+              name="message" 
+              class="form-textarea"
+              placeholder="Tell us how we can help you and your pets..." 
+              required
+            ></textarea>
+          </div>
+
+          <!-- Alert Messages -->
+          <div id="alertMessage" class="alert-message"></div>
+
+          <!-- Submit Button -->
+          <div class="form-submit-wrapper">
+            <button type="submit" class="details-btn" id="submitBtn">
+              <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#contactForm').on('submit', function(e) {
+      e.preventDefault();
+      
+      const alertDiv = $('#alertMessage');
+      const submitBtn = $('#submitBtn');
+      
+      // Clear previous messages
+      alertDiv.hide().removeClass('alert-success alert-error').html('');
+      
+      // Disable button
+      submitBtn.prop('disabled', true);
+      submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+      
+      // Send form data
+      $.ajax({
+        url: '{{ url_for("contact") }}',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(response) {
+          alertDiv.addClass('alert-success');
+          alertDiv.html('<i class="fas fa-check-circle"></i> ' + response.message);
+          alertDiv.show();
+          
+          // Reset form
+          $('#contactForm')[0].reset();
+          
+          // Re-enable button
+          submitBtn.prop('disabled', false);
+          submitBtn.html('<i class="fas fa-paper-plane"></i> Send Message');
+        },
+        error: function(xhr) {
+          const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred. Please try again.';
+          alertDiv.addClass('alert-error');
+          alertDiv.html('<i class="fas fa-exclamation-circle"></i> ' + errorMsg);
+          alertDiv.show();
+          
+          // Re-enable button
+          submitBtn.prop('disabled', false);
+          submitBtn.html('<i class="fas fa-paper-plane"></i> Send Message');
+        }
+      });
+    });
+  });
+</script>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+{% endblock %}

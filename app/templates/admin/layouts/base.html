@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }} - Admin Panel</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='admin/style.css')}}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='fontawesome/css/all.min.css')}}"
+    />
+  </head>
+  <body>
+    <nav class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-header">
+        <a class="logo" href="{{ url_for('admin_dashboard') }}">
+          <img src="{{ url_for('static', filename='PETSUP.png') }}" alt="petsup Logo" style="height: 40px;">
+        </a>
+        <div class="subtitle">Management Panel</div>
+      </div>
+
+      <div class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <div class="nav-item">
+          <a href="{{ url_for('admin_dashboard') }}" class="nav-link active">
+            <i class="fas fa-chart-pie"></i> Dashboard
+          </a>
+        </div>
+
+        <div class="nav-section">Products</div>
+        <div class="nav-item">
+          <a href="{{ url_for('manage_products') }}" class="nav-link">
+            <i class="fas fa-box"></i> Products
+          </a>
+        </div>
+        <div class="nav-item">
+          <a href="{{ url_for('manage_categories') }}" class="nav-link">
+            <i class="fas fa-tags"></i> Categories
+          </a>
+        </div>
+
+        <div class="nav-section">Sales</div>
+        <div class="nav-item">
+          <a href="{{ url_for('manage_orders') }}" class="nav-link">
+            <i class="fas fa-shopping-cart"></i> Orders
+          </a>
+        </div>
+        <div class="nav-item">
+          <a href="{{ url_for('sales_reports') }}" class="nav-link">
+            <i class="fas fa-chart-line"></i> Sales Reports
+          </a>
+        </div>
+
+        <div class="nav-section">Users</div>
+        <div class="nav-item">
+          <a href="{{ url_for('manage_users') }}" class="nav-link">
+            <i class="fas fa-users"></i> Customers
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="admin-main" id="adminMain">
+      <header class="admin-header">
+        <div class="header-left">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-nav">
+              <li class="breadcrumb-item">
+                <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+              </li>
+              <li class="breadcrumb-item active" aria-current="page">
+                {{ title }}
+              </li>
+            </ol>
+          </nav>
+        </div>
+
+        <div class="header-right">
+          <div class="admin-user dropdown">
+            <div
+              class="d-flex align-items-center"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <div class="user-avatar">
+                {{ session.get('UserName', 'A')[0].upper() }}
+              </div>
+              <div class="user-info">
+                <div class="user-name">
+                  {{ session.get('UserName', 'Admin User') }}
+                </div>
+                <div class="user-role">Administrator</div>
+              </div>
+              <i class="fas fa-chevron-down ms-2"></i>
+            </div>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('logout') }}"
+                  ><i class="fas fa-sign-out-alt me-2"></i>Logout</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} single-flash shadow-sm auto-dismiss position-fixed top-0 end-0 m-3"
+        style="z-index: 9999"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <main class="admin-content">{% block content %}{% endblock %}</main>
+    </div>
+
+    <script src="{{url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{url_for('static', filename='admin/script.js')}}"></script>
+  </body>
+</html>

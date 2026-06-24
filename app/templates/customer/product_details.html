@@ -1,0 +1,608 @@
+{% extends "customer/layouts/base.html" %}
+{% block content %}
+
+<style>
+    /* Container */
+    .container-narrow {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 15px 40px 15px;
+    }
+
+    /* Back Button */
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        color: #F89C20;
+        text-decoration: none;
+        font-weight: 700;
+        margin-bottom: 20px;
+        margin-top: 20px;
+        transition: all 0.3s ease;
+        background: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(248, 156, 32, 0.1);
+    }
+
+    .back-button:hover {
+        color: #E68A10;
+        text-decoration: none;
+        transform: translateX(-5px);
+        box-shadow: 0 4px 15px rgba(248, 156, 32, 0.2);
+    }
+
+    .back-button i {
+        margin-right: 8px;
+    }
+
+    /* Product Card */
+    .product-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(77, 76, 69, 0.08);
+        overflow: hidden;
+        margin: 20px 0 40px 0;
+        border: 2px solid rgba(248, 156, 32, 0.1);
+    }
+
+    .product-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        min-height: 400px;
+    }
+
+    /* Product Image */
+    .product-image-container {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #FFF5C8 0%, #FFEDB8 100%);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 100%;
+        min-height: 400px;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .product-image:hover {
+        transform: scale(1.05);
+    }
+
+    .image-placeholder {
+        min-height: 400px;
+        background: linear-gradient(135deg, #FFF5C8 0%, #FFEDB8 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed rgba(248, 156, 32, 0.3);
+    }
+
+    .image-placeholder i {
+        color: #F89C20;
+        font-size: 4rem;
+    }
+
+    /* Product Content */
+    .product-content {
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: white;
+    }
+
+    .product-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #4D4C45;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+
+    .product-description {
+        color: #4D4C45;
+        opacity: 0.8;
+        margin-bottom: 20px;
+        line-height: 1.7;
+        font-size: 15px;
+    }
+
+    .price {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #F89C20;
+        margin-bottom: 20px;
+        letter-spacing: -0.5px;
+    }
+
+    /* Product Info */
+    .product-info {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .category {
+        background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(248, 156, 32, 0.3);
+    }
+
+    .stock {
+        color: #F89C20;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .stock.low {
+        color: #FF6B35;
+    }
+
+    .stock.out {
+        color: #dc3545;
+    }
+
+    .stock-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #F89C20;
+        box-shadow: 0 0 10px rgba(248, 156, 32, 0.5);
+    }
+
+    .stock-dot.low {
+        background: #FF6B35;
+        box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+    }
+
+    .stock-dot.out {
+        background: #dc3545;
+        box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+    }
+
+    /* Cart Section */
+    .cart-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .quantity-input {
+        width: 80px;
+        padding: 12px;
+        border: 2px solid rgba(248, 156, 32, 0.3);
+        border-radius: 12px;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #4D4C45;
+        background: #FFFAE0;
+        transition: all 0.3s ease;
+    }
+
+    .quantity-input:focus {
+        outline: none;
+        border-color: #F89C20;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(248, 156, 32, 0.1);
+    }
+
+    .add-to-cart-btn {
+        background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+        color: white;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .add-to-cart-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .add-to-cart-btn:hover::before {
+        left: 100%;
+    }
+
+    .add-to-cart-btn:hover {
+        background: linear-gradient(135deg, #E68A10 0%, #D47A00 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(248, 156, 32, 0.4);
+        color: white;
+    }
+
+    .add-to-cart-btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        opacity: 0.7;
+    }
+
+    .out-of-stock {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 700;
+        box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    /* Alerts */
+    .success-alert {
+        background-color: #FFF5E6;
+        border: 2px solid #F89C20;
+        border-left: 4px solid #F89C20;
+        color: #8B5A00;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .error-alert {
+        background-color: #f8d7da;
+        border: 2px solid #dc3545;
+        border-left: 4px solid #dc3545;
+        color: #721c24;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .alert-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+    }
+
+    .success-icon {
+        color: #F89C20;
+        font-size: 1.4rem;
+    }
+
+    .error-icon {
+        color: #dc3545;
+        font-size: 1.4rem;
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1.5rem;
+        padding: 0;
+        line-height: 1;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .btn-close:hover {
+        opacity: 1;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container-narrow {
+            padding-bottom: 30px;
+        }
+
+        .product-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .product-image,
+        .image-placeholder {
+            min-height: 300px;
+        }
+
+        .product-content {
+            padding: 30px 20px;
+        }
+
+        .product-title {
+            font-size: 1.6rem;
+        }
+
+        .price {
+            font-size: 1.8rem;
+        }
+
+        .product-info {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cart-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .add-to-cart-btn,
+        .out-of-stock {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .quantity-input {
+            width: 100%;
+        }
+
+        .success-alert,
+        .error-alert {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="container-narrow">
+    <a href="javascript:history.back()" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+
+    <!-- Alert Container for dynamic messages -->
+    <div id="alertContainer"></div>
+
+    {% if success_message %}
+        <div class="success-alert" role="alert">
+            <div class="alert-content">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <span>{{ success_message }}</span>
+            </div>
+            <button type="button" class="btn-close" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    {% endif %}
+
+    <div class="product-card">
+        <div class="product-layout">
+            <div class="product-image-container">
+                {% if product['img_path'] %}
+                    <img src="{{ url_for('static', filename=product['img_path']) }}" class="product-image" alt="{{ product['name'] }}">
+                {% else %}
+                    <div class="image-placeholder">
+                        <i class="fas fa-paw"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="product-content">
+                <h1 class="product-title">{{ product['name'] }}</h1>
+
+                {% if product['description'] %}
+                    <p class="product-description">{{ product['description'] }}</p>
+                {% endif %}
+
+                <div class="price">₱{{ '%.2f'|format(product['price']) }}</div>
+
+                <div class="product-info">
+                    <div class="info-item">
+                        <span class="category">{{ product['category'] }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        {% if product['quantity'] == 0 %}
+                            <span class="stock-dot out"></span>
+                            <span class="stock out">Out of stock</span>
+                        {% elif product['quantity'] < 10 %}
+                            <span class="stock-dot low"></span>
+                            <span class="stock low">Only {{ product['quantity'] }} left!</span>
+                        {% else %}
+                            <span class="stock-dot"></span>
+                            <span class="stock">{{ product['quantity'] }} in stock</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if product['quantity'] > 0 %}
+                    <form id="addToCartForm" onsubmit="return addToCart(event)">
+                        <input type="hidden" name="product_id" value="{{ product['product_id'] }}" />
+
+                        <div class="cart-section">
+                            <input type="number"
+                                   class="quantity-input"
+                                   name="quantity"
+                                   value="1"
+                                   min="1"
+                                   max="{{ product['quantity'] }}"
+                                   title="Quantity" />
+
+                            <button type="submit" class="add-to-cart-btn" id="addToCartBtn">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="out-of-stock">
+                        <i class="fas fa-exclamation-triangle"></i> Currently Out of Stock
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Close alert when X button is clicked
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-close')) {
+            e.target.closest('.success-alert, .error-alert').style.display = 'none';
+        }
+    });
+
+    // Auto-hide success alert after 5 seconds
+    const alert = document.querySelector('.success-alert');
+    if (alert) {
+        setTimeout(() => {
+            alert.style.display = 'none';
+        }, 5000);
+    }
+
+    // Add to cart function
+    function addToCart(event) {
+        event.preventDefault();
+        
+        const form = document.getElementById('addToCartForm');
+        const btn = document.getElementById('addToCartBtn');
+        const formData = new FormData(form);
+        
+        // Disable button to prevent double submission
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        
+        fetch("{{ url_for('add_to_cart') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showAlert('success', data.message);
+                
+                // Update cart count in navbar if it exists
+                updateCartCount(data.cart_count);
+                
+                // Reset quantity to 1
+                form.querySelector('input[name="quantity"]').value = 1;
+            } else {
+                // Show error message
+                showAlert('error', data.error || 'Failed to add item to cart');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', 'An error occurred. Please try again.');
+        })
+        .finally(() => {
+            // Re-enable button
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+        });
+        
+        return false;
+    }
+
+    // Show alert message
+    function showAlert(type, message) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertClass = type === 'success' ? 'success-alert' : 'error-alert';
+        const iconClass = type === 'success' ? 'success-icon' : 'error-icon';
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+        
+        const alertHTML = `
+            <div class="${alertClass}" role="alert">
+                <div class="alert-content">
+                    <div class="${iconClass}">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="btn-close" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        alertContainer.innerHTML = alertHTML;
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            const alert = alertContainer.querySelector('.success-alert, .error-alert');
+            if (alert) {
+                alert.style.display = 'none';
+            }
+        }, 5000);
+    }
+
+    // Update cart count in navbar - matches your base.html structure
+    function updateCartCount(count) {
+        const badge = document.getElementById('cartBadge');
+        if (badge) {
+            badge.textContent = count;
+            
+            // Show/hide badge based on count
+            if (count > 0) {
+                badge.classList.add('show');
+                badge.classList.remove('empty');
+            } else {
+                badge.classList.remove('show');
+                badge.classList.add('empty');
+            }
+            
+            // Add animation
+            badge.style.transition = 'transform 0.3s ease';
+            badge.style.transform = 'scale(1.3)';
+            setTimeout(() => {
+                badge.style.transform = 'scale(1)';
+            }, 300);
+        }
+    }
+</script>
+
+{% endblock %}

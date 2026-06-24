@@ -1,0 +1,165 @@
+{% extends "admin/layouts/base.html" %} {% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-user-edit"></i> {{title}}</h3>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            <input type="hidden" name="user_id" value="{{ user.id }}" />
+            <input
+              type="hidden"
+              name="created_at"
+              value="{{ user.created_at }}"
+            />
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="firstname" class="form-label"
+                    >First Name <span class="text-danger"></span
+                  ></label>
+                  <input
+                    type="text"
+                    class="form-control {% if errors.firstname %}error-field{% endif %}"
+                    id="firstname"
+                    name="firstname"
+                    value="{{ request.form.firstname or user.firstname }}"
+                    readonly
+                  />
+                  {% if errors.firstname %}
+                  <span class="text-danger">{{ errors.firstname }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="middlename" class="form-label">Middle Name</label>
+                  <input
+                    type="text"
+                    class="form-control {% if errors.middlename %}error-field{% endif %}"
+                    id="middlename"
+                    name="middlename"
+                    value="{{ request.form.middlename or user.middlename }}"
+                    readonly
+                  />
+                  {% if errors.middlename %}
+                  <span class="text-danger">{{ errors.middlename }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="lastname" class="form-label"
+                    >Last Name <span class="text-danger"></span
+                  ></label>
+                  <input
+                    type="text"
+                    class="form-control {% if errors.lastname %}error-field{% endif %}"
+                    id="lastname"
+                    name="lastname"
+                    value="{{ request.form.lastname or user.lastname }}"
+                    readonly
+                  />
+                  {% if errors.lastname %}
+                  <span class="text-danger">{{ errors.lastname }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="email" class="form-label"
+                    >Email <span class="text-danger"></span
+                  ></label>
+                  <input
+                    type="email"
+                    class="form-control {% if errors.email %}error-field{% endif %}"
+                    id="email"
+                    name="email"
+                    value="{{ request.form.email or user.email }}"
+                    readonly
+                  />
+                  {% if errors.email %}
+                  <span class="text-danger">{{ errors.email }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="phone" class="form-label"
+                    >Phone number<span class="text-danger"></span
+                  ></label>
+                  <input
+                    type="number"
+                    class="form-control {% if errors.phone %}error-field{% endif %}"
+                    id="phone"
+                    name="phone"
+                    value="{{ request.form.phone or user.phone }}"
+                    readonly
+                  />
+                  {% if errors.phone %}
+                  <span class="text-danger">{{ errors.phne }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="address" class="form-label"
+                >Address <span class="text-danger"></span
+              ></label>
+              <input
+                class="form-control {% if errors.address %}error-field{% endif %}"
+                id="address"
+                name="address"
+                value="{{ user.barangay }}, {{ user.municipality }}, {{ user.province }}"
+                readonly
+              >
+              {% if errors.address %}
+              <span class="text-danger">{{ errors.address }}</span>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="status" class="form-label"
+                >Status <span class="text-danger">*</span></label>                  
+              <select class="form-select" name="status" id="status">
+                <option value="0" {% if user.status == 0 %} selected {% endif %}>Disabled</option>
+                <option value="1" {% if user.status == 1 %} selected {% endif %}>Enabled</option>
+              </select>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i>
+              <strong>Note:</strong> To change the password, use the "Reset
+              Password" option from the users list.
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{{ url_for('manage_users') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Users
+              </a>
+              <div>
+                <a
+                  href="{{ url_for('reset_password', user_id=user.user_id) }}"
+                  class="btn btn-warning me-2"
+                >
+                  <i class="fas fa-key"></i> Reset Password
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Update User
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

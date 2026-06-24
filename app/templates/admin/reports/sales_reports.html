@@ -1,0 +1,363 @@
+{% extends "admin/layouts/base.html" %}
+
+{% block content %}
+<style>
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.sales-reports-container .card {
+  transition: transform 0.2s;
+}
+
+.sales-reports-container .card:hover {
+  transform: translateY(-2px);
+}
+
+.sales-reports-container .table th {
+  font-weight: 600;
+  color: #2d5a4e;
+}
+
+.date-picker-hidden {
+  display: none;
+}
+
+.date-picker-visible {
+  display: block;
+}
+</style>
+
+<div class="sales-reports-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Sales Reports</h2>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('download_report', period=period, start_date=start_date, end_date=end_date, format='pdf') }}" 
+         class="btn btn-danger">
+        <i class="fas fa-file-pdf"></i> Download PDF
+      </a>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="{{ url_for('sales_reports') }}" class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Report Period</label>
+          <select name="period" id="periodSelect" class="form-select">
+            <option value="daily" {% if period == 'daily' %}selected{% endif %}>Today</option>
+            <option value="weekly" {% if period == 'weekly' %}selected{% endif %}>This Week</option>
+            <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>This Month</option>
+            <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+          </select>
+        </div>
+        <div class="col-md-3 {% if period != 'custom' %}date-picker-hidden{% else %}date-picker-visible{% endif %}" id="startDateDiv">
+          <label class="form-label">Start Date</label>
+          <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+        </div>
+        <div class="col-md-3 {% if period != 'custom' %}date-picker-hidden{% else %}date-picker-visible{% endif %}" id="endDateDiv">
+          <label class="form-label">End Date</label>
+          <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-search"></i> Generate Report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h4 class="mb-3">Report for: {{ period_label }}</h4>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card text-white bg-primary">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-subtitle mb-2">Total Orders</h6>
+              <h2 class="card-title mb-0">{{ summary.total_orders or 0 }}</h2>
+            </div>
+            <div>
+              <i class="fas fa-shopping-cart fa-3x opacity-50"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-success">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-subtitle mb-2">Total Revenue</h6>
+              <h2 class="card-title mb-0">₱{{ "{:,.2f}".format(summary.total_revenue or 0) }}</h2>
+            </div>
+            <div>
+              <i class="fas fa-dollar-sign fa-3x opacity-50"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-info">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-subtitle mb-2">Delivered Orders</h6>
+              <h2 class="card-title mb-0">{{ summary.delivered_orders or 0 }}</h2>
+            </div>
+            <div>
+              <i class="fas fa-check-circle fa-3x opacity-50"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-white bg-warning">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-subtitle mb-2">Pending Orders</h6>
+              <h2 class="card-title mb-0">{{ summary.pending_orders or 0 }}</h2>
+            </div>
+            <div>
+              <i class="fas fa-clock fa-3x opacity-50"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Order Status Breakdown</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <tbody>
+              <tr>
+                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                <td class="text-end">{{ summary.pending_orders or 0 }}</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-info">Processing</span></td>
+                <td class="text-end">{{ summary.processing_orders or 0 }}</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-primary">Shipped</span></td>
+                <td class="text-end">{{ summary.shipped_orders or 0 }}</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-success">Delivered</span></td>
+                <td class="text-end">{{ summary.delivered_orders or 0 }}</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-danger">Cancelled</span></td>
+                <td class="text-end">{{ summary.cancelled_orders or 0 }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Revenue Breakdown</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <tbody>
+              <tr>
+                <td><strong>Total Revenue</strong></td>
+                <td class="text-end"><strong>₱{{ "{:,.2f}".format(summary.total_revenue or 0) }}</strong></td>
+              </tr>
+              <tr>
+                <td>Delivered Revenue</td>
+                <td class="text-end text-success">₱{{ "{:,.2f}".format(summary.delivered_revenue or 0) }}</td>
+              </tr>
+              <tr>
+                <td>Cancelled Revenue</td>
+                <td class="text-end text-danger">₱{{ "{:,.2f}".format(summary.cancelled_revenue or 0) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Top 10 Products</h5>
+        </div>
+        <div class="card-body">
+          {% if top_products %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Product Name</th>
+                  <th class="text-center">Units Sold</th>
+                  <th class="text-end">Revenue</th>
+                  <th class="text-center">Orders</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for product in top_products %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ product.product_name }}</td>
+                  <td class="text-center">{{ product.total_quantity }}</td>
+                  <td class="text-end">₱{{ "{:,.2f}".format(product.total_revenue) }}</td>
+                  <td class="text-center">{{ product.order_count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted text-center py-4">No products sold in this period</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Daily Breakdown</h5>
+        </div>
+        <div class="card-body">
+          {% if daily_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th class="text-center">Orders</th>
+                  <th class="text-end">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for day in daily_breakdown %}
+                <tr>
+                  <td>{{ day.date.strftime('%B %d, %Y') }}</td>
+                  <td class="text-center">{{ day.orders }}</td>
+                  <td class="text-end">₱{{ "{:,.2f}".format(day.revenue) }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="table-secondary">
+                <tr>
+                  <th>Total</th>
+                  <th class="text-center">{{ summary.total_orders or 0 }}</th>
+                  <th class="text-end">₱{{ "{:,.2f}".format(summary.total_revenue or 0) }}</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted text-center py-4">No data available for this period</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Recent Orders</h5>
+        </div>
+        <div class="card-body">
+          {% if orders %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th class="text-end">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in orders[:20] %}
+                <tr>
+               
+                  <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td>{{ order.customer_name or 'Guest' }}</td>
+                  <td>
+                    <span class="badge bg-secondary">
+                      {{ 'COD' if order.payment_method == 'COD' else 'Online' }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if order.status == 'Pending' %}
+                      <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif order.status == 'Processing' %}
+                      <span class="badge bg-info">Processing</span>
+                    {% elif order.status == 'Shipped' %}
+                      <span class="badge bg-primary">Shipped</span>
+                    {% elif order.status == 'Delivered' %}
+                      <span class="badge bg-success">Delivered</span>
+                    {% elif order.status == 'Cancelled' %}
+                      <span class="badge bg-danger">Cancelled</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">₱{{ "{:,.2f}".format(order.total_amount) }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if orders|length > 20 %}
+            <p class="text-muted text-center mt-3">Showing 20 of {{ orders|length }} orders</p>
+            {% endif %}
+          </div>
+          {% else %}
+          <p class="text-muted text-center py-4">No orders found for this period</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('periodSelect').addEventListener('change', function() {
+  const startDateDiv = document.getElementById('startDateDiv');
+  const endDateDiv = document.getElementById('endDateDiv');
+  
+  if (this.value === 'custom') {
+    startDateDiv.classList.remove('date-picker-hidden');
+    startDateDiv.classList.add('date-picker-visible');
+    endDateDiv.classList.remove('date-picker-hidden');
+    endDateDiv.classList.add('date-picker-visible');
+  } else {
+    startDateDiv.classList.add('date-picker-hidden');
+    startDateDiv.classList.remove('date-picker-visible');
+    endDateDiv.classList.add('date-picker-hidden');
+    endDateDiv.classList.remove('date-picker-visible');
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,644 @@
+{% extends "customer/layouts/base.html" %} {% block content %}
+
+<style>
+  :root {
+    --theme-primary: #F89C20;
+    --theme-primary-light: #FFA940;
+    --theme-primary-dark: #E68A10;
+  }
+
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .cart-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .cart-header {
+    color: #4D4C45;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 2rem;
+  }
+
+  .guest-badge {
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-dark) 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(248, 156, 32, 0.3);
+  }
+
+  .cart-items-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .cart-items-header {
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-light) 100%);
+    color: white;
+    padding: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .cart-item-row {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.3s ease;
+  }
+
+  .cart-item-row:hover {
+    background-color: #f8f9fc;
+  }
+
+  .cart-item-row:last-child {
+    border-bottom: none;
+  }
+
+  .product-image {
+    height: 100px;
+    width: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .image-placeholder {
+    height: 100px;
+    width: 100px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+  }
+
+  .image-placeholder i {
+    color: #6c757d;
+    font-size: 2rem;
+  }
+
+  .product-title {
+    color: #4D4C45;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .product-price {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+
+  .quantity-container {
+    background: #f8f9fc;
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .quantity-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  .quantity-input {
+    border: 2px solid #e3e6f0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-weight: 700;
+    width: 80px;
+    padding: 0.5rem;
+    background: white;
+    color: #4D4C45;
+  }
+
+  .quantity-input:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 4px rgba(248, 156, 32, 0.1);
+    outline: none;
+  }
+
+  .item-total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--theme-primary);
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .remove-btn {
+    border: 2px solid #dc3545;
+    color: #dc3545;
+    background: transparent;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin: 0 auto;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+
+  .remove-btn:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .summary-card {
+    border: 2px solid #e3e6f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 2rem;
+  }
+
+  .summary-header {
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-light) 100%);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .summary-header h5 {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .summary-body {
+    padding: 2rem;
+    background: white;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f3f4;
+    color: #4D4C45;
+  }
+
+  .summary-row:last-child {
+    border-bottom: none;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 2px solid var(--theme-primary);
+  }
+
+  .summary-total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--theme-primary);
+  }
+
+  .checkout-btn {
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-dark) 100%);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 1.5rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .checkout-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  .checkout-btn:hover::before {
+    left: 100%;
+  }
+
+  .checkout-btn:hover {
+    background: linear-gradient(135deg, var(--theme-primary-dark) 0%, #D47A00 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(248, 156, 32, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  .login-btn {
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-dark) 100%);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 1.5rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+  }
+
+  .login-btn:hover {
+    background: linear-gradient(135deg, var(--theme-primary-dark) 0%, #D47A00 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(248, 156, 32, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  .empty-cart {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-cart-icon {
+    font-size: 4rem;
+    color: var(--theme-primary);
+    opacity: 0.3;
+    margin-bottom: 2rem;
+  }
+
+  .continue-shopping-btn {
+    background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-dark) 100%);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+  }
+
+  .continue-shopping-btn:hover {
+    background: linear-gradient(135deg, var(--theme-primary-dark) 0%, #D47A00 100%);
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(248, 156, 32, 0.4);
+  }
+
+  .login-prompt {
+    background: #fff9f0;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 1rem;
+    border: 2px solid #ffe6cc;
+  }
+
+  .login-prompt-icon {
+    color: var(--theme-primary);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .login-prompt p {
+    color: #4D4C45;
+  }
+
+  .bottom-actions {
+    margin-top: 2rem;
+    text-align: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .continue-shopping-outline {
+    background: transparent;
+    border: 2px solid var(--theme-primary);
+    color: var(--theme-primary);
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+  }
+
+  .continue-shopping-outline:hover {
+    background: var(--theme-primary);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+  }
+
+  .clear-cart-btn {
+    background: #6c757d;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .clear-cart-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(108, 117, 125, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    .cart-container {
+      padding: 1rem 0.5rem;
+    }
+
+    .cart-header {
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+    }
+
+    .summary-card {
+      position: relative;
+      top: 0;
+      margin-top: 2rem;
+    }
+
+    .cart-item-row {
+      padding: 1rem;
+    }
+
+    .product-image,
+    .image-placeholder {
+      height: 80px;
+      width: 80px;
+    }
+
+    .summary-body {
+      padding: 1.5rem;
+    }
+
+    .quantity-input {
+      width: 60px;
+    }
+
+    .item-total {
+      font-size: 1.1rem;
+    }
+
+    .bottom-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<div class="cart-container">
+  <h1 class="cart-header">
+    <div>
+      <i class="fas fa-shopping-cart me-2"></i>
+      Shopping Cart
+    </div>
+    {% if is_guest and cart_items %}
+    <span class="guest-badge">
+      <i class="fas fa-user me-1"></i>
+      Guest Session
+    </span>
+    {% endif %}
+  </h1>
+
+  {% if not cart_items %}
+  <div class="empty-cart">
+    <div class="empty-cart-icon">
+      <i class="fas fa-shopping-cart"></i>
+    </div>
+    <h4 class="mb-3">Your cart is empty</h4>
+    <p class="text-muted mb-0">Discover amazing products and start shopping!</p>
+    <a href="{{ url_for('products') }}" class="continue-shopping-btn">
+      <i class="fas fa-arrow-left me-2"></i>
+      Start Shopping
+    </a>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="cart-items-container">
+        <div class="cart-items-header">
+          <i class="fas fa-list me-2"></i>
+          Cart Items ({{ cart_items|length }})
+        </div>
+
+        {% for item in cart_items %}
+        <div class="cart-item-row">
+          <div class="row align-items-center">
+            <div class="col-md-3 col-sm-4 mb-3 mb-md-0">
+              {% if item.image %}
+              <img
+                src="{{ url_for('static', filename=item.image) }}"
+                class="product-image"
+                alt="{{ item.product_name }}"
+              />
+              {% else %}
+              <div class="image-placeholder">
+                <i class="fas fa-paw"></i>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-4 col-sm-8 mb-3 mb-md-0">
+              <h6 class="product-title">{{ item.product_name }}</h6>
+              <p class="product-price">
+                <i class="fas fa-tag"></i>
+                ₱{{ "%.2f"|format(item.price) }} each
+              </p>
+            </div>
+
+            <div class="col-md-2 col-sm-6 mb-3 mb-md-0">
+              <div class="quantity-container">
+                <div class="quantity-label">Quantity</div>
+                <form
+                  method="post"
+                  action="{{ url_for('update_quantity') }}"
+                  class="d-inline"
+                >
+                  <input
+                    type="hidden"
+                    name="product_id"
+                    value="{{ item.product_id }}"
+                  />
+                  <input
+                    type="number"
+                    name="quantity"
+                    value="{{ item.quantity }}"
+                    min="1"
+                    max="99"
+                    class="quantity-input"
+                    onchange="this.form.submit()"
+                  />
+                </form>
+              </div>
+            </div>
+
+            <div class="col-md-2 col-sm-4 mb-3 mb-md-0">
+              <div class="item-total">₱{{ "%.2f"|format(item.total) }}</div>
+            </div>
+
+            <div class="col-md-1 col-sm-2">
+              <form
+                method="post"
+                action="{{ url_for('remove_from_cart') }}"
+                class="d-inline"
+                onsubmit="return confirm('Remove this item from cart?')"
+              >
+                <input
+                  type="hidden"
+                  name="product_id"
+                  value="{{ item.product_id }}"
+                />
+                <button type="submit" class="remove-btn" title="Remove item">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="summary-card">
+        <div class="summary-header">
+          <h5 class="mb-0">
+            <i class="fas fa-receipt me-2"></i>
+            Order Summary
+          </h5>
+        </div>
+        <div class="summary-body">
+          <div class="summary-row">
+            <span>
+              <i class="fas fa-cubes me-2 text-muted"></i>
+              Items:
+            </span>
+            <strong>{{ cart_items|map(attribute='quantity')|sum }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Subtotal:</span>
+            <strong
+              >₱{{ "%.2f"|format(cart_items|map(attribute='total')|sum)
+              }}</strong
+            >
+          </div>
+          <div class="summary-row">
+            <span class="summary-total">Total:</span>
+            <span class="summary-total"
+              >₱{{ "%.2f"|format(cart_items|map(attribute='total')|sum) }}</span
+            >
+          </div>
+
+          {% if is_guest or not is_loggedin %}
+          <div class="login-prompt">
+            <div class="login-prompt-icon">
+              <i class="fas fa-lock"></i>
+            </div>
+            <p class="mb-2 fw-bold">Login Required</p>
+            <p class="small mb-0">Please login to proceed to checkout</p>
+          </div>
+          <a href="{{ url_for('checkout_auth') }}" class="login-btn">
+            <i class="fas fa-sign-in-alt me-2"></i>
+            Login to Checkout
+          </a>
+          {% else %}
+          <a href="{{ url_for('checkout') }}" class="checkout-btn">
+            <i class="fas fa-credit-card me-2"></i>
+            Proceed to Checkout
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-actions">
+    <a href="{{ url_for('products') }}" class="continue-shopping-outline">
+      <i class="fas fa-arrow-left me-2"></i>
+      Continue Shopping
+    </a>
+    {% if cart_items %}
+    <form
+      method="post"
+      action="{{ url_for('clear_cart') }}"
+      style="display: inline"
+    >
+      <button
+        type="submit"
+        class="clear-cart-btn"
+        onclick="return confirm('Clear entire cart?')"
+      >
+        <i class="fas fa-trash-alt me-2"></i>
+        Clear Cart
+      </button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% endblock %}

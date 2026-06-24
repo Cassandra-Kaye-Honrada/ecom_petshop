@@ -1,0 +1,584 @@
+{% extends "customer/layouts/base.html" %} 
+{% block content %}
+
+<style>
+  /* Page Header */
+  .page-header {
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFF3D0 50%, #FFEDB8 100%);
+    padding: 80px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23F89C20' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+
+  .page-header .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-title {
+    color: #4D4C45;
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    text-align: center;
+    background: linear-gradient(135deg, #4D4C45 0%, #7a868b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .page-subtitle {
+    color: #4D4C45;
+    font-size: 18px;
+    opacity: 0.85;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  /* Products Section */
+  .products-section {
+    padding: 80px 0;
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFAE0 100%);
+  }
+
+  /* Stats Cards */
+  .stat-card {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(77, 76, 69, 0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(248, 156, 32, 0.08);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(248, 156, 32, 0.15);
+    border-color: rgba(248, 156, 32, 0.2);
+  }
+
+  .stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #F89C20;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    color: #4D4C45;
+    opacity: 0.7;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  /* Section Styles */
+  .section-title {
+    color: #4D4C45;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .section-description {
+    color: #4D4C45;
+    opacity: 0.8;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    max-width: 700px;
+    margin: 0 auto 80px;
+    text-align: center;
+  }
+
+  /* Feature Cards */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 32px;
+  }
+
+  .product-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(77, 76, 69, 0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(248, 156, 32, 0.08);
+  }
+
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(248, 156, 32, 0.15);
+    border-color: rgba(248, 156, 32, 0.2);
+  }
+
+  .product-image {
+    background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product-image i {
+    font-size: 3rem;
+    color: white;
+  }
+
+  .product-info {
+    padding: 24px;
+  }
+
+  .product-name {
+    color: #4D4C45;
+    font-weight: 800;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .product-description {
+    color: #4D4C45;
+    opacity: 0.8;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Timeline */
+  .timeline-item {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 30px;
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    background: #F89C20;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #F89C20;
+  }
+
+  .timeline-title {
+    color: #4D4C45;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+
+  .timeline-text {
+    color: #4D4C45;
+    opacity: 0.7;
+    margin: 0;
+  }
+
+  /* Stats Box */
+  .stats-box {
+    background: rgba(248, 156, 32, 0.08);
+    border-radius: 20px;
+    padding: 40px;
+    border: 2px solid rgba(248, 156, 32, 0.15);
+  }
+
+  .stats-box h3 {
+    color: #4D4C45;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 30px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    text-align: center;
+  }
+
+  .stat-item-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #F89C20;
+    margin-bottom: 10px;
+  }
+
+  .stat-item-label {
+    color: #4D4C45;
+    opacity: 0.7;
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  /* CTA Section */
+  .cta-section {
+    background: white;
+    padding: 60px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(77, 76, 69, 0.08);
+    border: 2px solid rgba(248, 156, 32, 0.1);
+  }
+
+  .cta-section h2 {
+    color: #4D4C45;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  .cta-section p {
+    color: #4D4C45;
+    opacity: 0.8;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Buttons */
+  .details-btn {
+    background: linear-gradient(135deg, #F89C20 0%, #E68A10 100%);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(248, 156, 32, 0.3);
+  }
+
+  .details-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(248, 156, 32, 0.4);
+  }
+
+  .details-btn.secondary {
+    background: white;
+    color: #F89C20;
+    border: 2px solid #F89C20;
+  }
+
+  .details-btn.secondary:hover {
+    background: #F89C20;
+    color: white;
+  }
+
+  /* Mission & Values Section */
+  .mission-values-section {
+    background: white;
+    border-radius: 20px;
+    padding: 60px;
+    box-shadow: 0 8px 30px rgba(77, 76, 69, 0.08);
+    border: 2px solid rgba(248, 156, 32, 0.1);
+  }
+
+  .mission-values-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+  }
+
+  .mission-values-section h3 {
+    color: #4D4C45;
+    font-weight: 800;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+
+  .mission-values-section h3 i {
+    margin-right: 10px;
+    color: #F89C20;
+  }
+
+  .mission-values-section p {
+    color: #4D4C45;
+    opacity: 0.8;
+    line-height: 1.8;
+  }
+
+  .values-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: #4D4C45;
+    opacity: 0.8;
+  }
+
+  .values-list li {
+    margin-bottom: 12px;
+  }
+
+  .values-list li i {
+    color: #F89C20;
+    margin-right: 10px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 36px;
+    }
+
+    .page-subtitle {
+      font-size: 16px;
+    }
+
+    .products-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mission-values-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    .cta-section {
+      padding: 40px 30px;
+    }
+
+    .cta-section h2,
+    .section-title {
+      font-size: 2rem;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+    }
+
+    .story-grid {
+      grid-template-columns: 1fr !important;
+      gap: 30px !important;
+    }
+
+    .button-group {
+      flex-direction: column !important;
+    }
+
+    .details-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title">🐾 Welcome to PetSup</h1>
+    <p class="page-subtitle">Your ultimate destination for quality pet supplies and loving care.</p>
+  </div>
+</div>
+
+<div class="products-section">
+  <div class="container">
+    <!-- Hero Stats -->
+    <div class="products-grid" style="margin-bottom: 80px;">
+      <div class="stat-card">
+        <div class="stat-number">5+</div>
+        <p class="stat-label">Years Experience</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">5K+</div>
+        <p class="stat-label">Happy Pet Parents</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">500+</div>
+        <p class="stat-label">Quality Products</p>
+      </div>
+    </div>
+
+    <!-- Our Passion Section -->
+    <div style="margin-bottom: 80px;">
+      <h2 class="section-title">Our Passion for Pets</h2>
+      <p class="section-description">
+        At PetSup, we believe every pet deserves the best care and love. We're dedicated to providing premium quality pet supplies, nutritious food, and everything your furry friends need to live happy, healthy lives.
+      </p>
+    </div>
+
+    <!-- Features Section -->
+    <div class="products-grid" style="margin-bottom: 80px;">
+      <!-- Feature 1 -->
+      <div class="product-card">
+        <div class="product-image">
+          <i class="fas fa-paw"></i>
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">Premium Selection</h3>
+          <p class="product-description">
+            Every product in our collection is carefully chosen by pet care experts for quality, safety, and pet happiness. We source from trusted brands nationwide.
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="product-card">
+        <div class="product-image">
+          <i class="fas fa-heart"></i>
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">Expert Pet Care Advice</h3>
+          <p class="product-description">
+            We provide detailed care guides and personalized tips to help your pets thrive, perfect for both new pet parents and experienced owners.
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="product-card">
+        <div class="product-image">
+          <i class="fas fa-shipping-fast"></i>
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">Fast & Safe Delivery</h3>
+          <p class="product-description">
+            Your pet supplies are packed with care and shipped swiftly to ensure they arrive fresh, intact, and ready to make your pets happy.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Our Story Section -->
+    <div class="story-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 80px;">
+      <!-- Timeline -->
+      <div>
+        <h2 style="color: #4D4C45; font-size: 2.5rem; font-weight: 800; margin-bottom: 40px;">Our Story</h2>
+        
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <h5 class="timeline-title">2019 - The Beginning</h5>
+          <p class="timeline-text">Started as a small local pet store with a passion for providing quality care to furry companions.</p>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <h5 class="timeline-title">2021 - Going Digital</h5>
+          <p class="timeline-text">Launched our online platform to reach pet lovers across the country during the pandemic.</p>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <h5 class="timeline-title">2023 - Expert Team</h5>
+          <p class="timeline-text">Expanded our team with certified veterinary consultants and pet care specialists.</p>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <h5 class="timeline-title">2024 - Community Growth</h5>
+          <p class="timeline-text">Built a thriving community of over 5,000+ pet parents and counting!</p>
+        </div>
+      </div>
+
+      <!-- Stats Box -->
+      <div class="stats-box">
+        <h3>Why Choose Us?</h3>
+        
+        <div class="stats-grid">
+          <div>
+            <div class="stat-item-number">99%</div>
+            <p class="stat-item-label">Customer Satisfaction</p>
+          </div>
+          <div>
+            <div class="stat-item-number">500+</div>
+            <p class="stat-item-label">Quality Products</p>
+          </div>
+          <div>
+            <div class="stat-item-number">24/7</div>
+            <p class="stat-item-label">Customer Support</p>
+          </div>
+          <div>
+            <div class="stat-item-number">100%</div>
+            <p class="stat-item-label">Quality Guarantee</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join Community Section -->
+    <div class="cta-section" style="margin-bottom: 80px;">
+      <h2>🐕 Join Our Pet Community 🐈</h2>
+      <p>
+        Connect with fellow pet parents, share your pet's journey, and discover new tips and tricks to give your pets the best life possible.
+      </p>
+      <div class="button-group" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        <button class="details-btn">
+          <i class="fab fa-facebook-f"></i> Follow on Facebook
+        </button>
+        <button class="details-btn secondary">
+          <i class="fab fa-instagram"></i> Instagram Community
+        </button>
+        <button class="details-btn secondary">
+          <i class="fas fa-envelope"></i> Join Newsletter
+        </button>
+      </div>
+    </div>
+
+    <!-- Mission & Values -->
+    <div class="mission-values-section">
+      <div class="mission-values-grid">
+        <!-- Mission -->
+        <div>
+          <h3>
+            <i class="fas fa-bullseye"></i>Our Mission
+          </h3>
+          <p>
+            To make pet parenthood accessible, enjoyable, and fulfilling for everyone. We're here to provide quality products and expert guidance for every step of your pet care journey.
+          </p>
+        </div>
+
+        <!-- Values -->
+        <div>
+          <h3>
+            <i class="fas fa-heart"></i>Our Values
+          </h3>
+          <ul class="values-list">
+            <li>
+              <i class="fas fa-check-circle"></i>Quality & Safety First
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i>Sustainable Practices
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i>Pet Health Education
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i>Community Building
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+{% endblock %}

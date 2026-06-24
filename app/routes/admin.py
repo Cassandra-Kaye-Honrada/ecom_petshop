@@ -27,7 +27,6 @@ def register_admin(app, mysql: MySQL):
             return redirect(url_for('login'))
 
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            # Count only products from visible categories
             cursor.execute("""
                 SELECT COUNT(*) as total_products 
                 FROM products p
@@ -46,7 +45,6 @@ def register_admin(app, mysql: MySQL):
             revenue_result = cursor.fetchone()
             total_revenue = revenue_result['total_revenue'] if revenue_result['total_revenue'] else 0
 
-            # Top products - only from visible categories
             cursor.execute("""
                 SELECT 
                     p.product_id,
@@ -84,7 +82,6 @@ def register_admin(app, mysql: MySQL):
     @app.route('/admin/products')
     def manage_products():
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            # Show all products, but indicate if category is hidden
             cursor.execute("""SELECT 
                 p.product_id AS product_id,
                 p.name AS name,
@@ -137,7 +134,6 @@ def register_admin(app, mysql: MySQL):
         errors = {}
 
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            # Only show visible categories in dropdown
             cursor.execute('SELECT * FROM categories WHERE visible = 1')
             categories = cursor.fetchall()
 
@@ -184,18 +180,18 @@ def register_admin(app, mysql: MySQL):
                 prc = round(float(request.form["price"].strip()),2)
                 qty = int(request.form["stock"].strip())
 
-                with mysql.connection.cursor() as cursor:
-                    cursor.execute("""INSERT INTO products(name, description, price, category, img_path, visible) 
-                        VALUES (%s, %s, %s, %s, %s, %s)""", (name, desc, prc, category, save_path, visible))
-                    mysql.connection.commit()
-
-                    last_id = cursor.lastrowid
-
-                    cursor.execute("""INSERT INTO inventories(product_id, quantity) VALUES (%s, %s)""", (last_id, qty))
-                    mysql.connection.commit()
-
-                flash("Product created successfully!", "success")
-                return redirect(url_for("manage_products"))
+                try:
+                    with mysql.connection.cursor() as cursor:
+                        cursor.execute("""INSERT INTO products(name, description, price, category, img_path, visible) 
+                            VALUES (%s, %s, %s, %s, %s, %s)""", (name, desc, prc, category, save_path, visible))
+                        last_id = cursor.lastrowid
+                        cursor.execute("""INSERT INTO inventories(product_id, quantity) VALUES (%s, %s)""", (last_id, qty))
+                        mysql.connection.commit()
+                    flash("Product created successfully!", "success")
+                    return redirect(url_for("manage_products"))
+                except Exception:
+                    mysql.connection.rollback()
+                    errors['database'] = "A database error occurred while creating the product."
             
         return render_template("admin/product/add_product.html", title="Create Product", categories=categories, errors=errors)
 
@@ -214,7 +210,6 @@ def register_admin(app, mysql: MySQL):
             inventory = cursor.fetchone()
             current_quantity = inventory['quantity'] if inventory else 0
 
-            # Only show visible categories in dropdown
             cursor.execute("SELECT * FROM categories WHERE visible = 1")
             categories = cursor.fetchall()
 
@@ -251,22 +246,23 @@ def register_admin(app, mysql: MySQL):
                 else:
                     save_path = product['img_path']
 
-                with mysql.connection.cursor() as cursor:
-                    cursor.execute("""
-                        UPDATE products 
-                        SET name=%s, description=%s, price=%s, category=%s, img_path=%s, visible=%s 
-                        WHERE product_id=%s
-                    """, (name, desc, float(price), category, save_path, visible, product_id))
-                    mysql.connection.commit()
-
-                    if inventory:
-                        cursor.execute("UPDATE inventories SET quantity=%s WHERE product_id=%s", (int(quantity), product_id))
-                    else:
-                        cursor.execute("INSERT INTO inventories(product_id, quantity) VALUES (%s, %s)", (product_id, int(quantity)))
-                    mysql.connection.commit()
-
-                flash("Product updated successfully!", "success")
-                return redirect(url_for("manage_products"))
+                try:
+                    with mysql.connection.cursor() as cursor:
+                        cursor.execute("""
+                            UPDATE products 
+                            SET name=%s, description=%s, price=%s, category=%s, img_path=%s, visible=%s 
+                            WHERE product_id=%s
+                        """, (name, desc, float(price), category, save_path, visible, product_id))
+                        if inventory:
+                            cursor.execute("UPDATE inventories SET quantity=%s WHERE product_id=%s", (int(quantity), product_id))
+                        else:
+                            cursor.execute("INSERT INTO inventories(product_id, quantity) VALUES (%s, %s)", (product_id, int(quantity)))
+                        mysql.connection.commit()
+                    flash("Product updated successfully!", "success")
+                    return redirect(url_for("manage_products"))
+                except Exception:
+                    mysql.connection.rollback()
+                    errors['database'] = "A database error occurred while updating the product."
 
         return render_template(
             "admin/product/edit_product.html",
@@ -279,14 +275,16 @@ def register_admin(app, mysql: MySQL):
 
     @app.route('/admin/product/delete/<int:id>', methods=['POST'])
     def delete_product(id):
-        with mysql.connection.cursor() as cursor:
-            cursor.execute('DELETE FROM `products` WHERE product_id = %s', (id,))
-            mysql.connection.commit()
-
-        flash("Product deleted successfully!", "success")
+        try:
+            with mysql.connection.cursor() as cursor:
+                cursor.execute('DELETE FROM `products` WHERE product_id = %s', (id,))
+                mysql.connection.commit()
+            flash("Product deleted successfully!", "success")
+        except Exception:
+            mysql.connection.rollback()
+            flash("Product cannot be deleted. It may be referenced by existing orders.", "danger")
         return redirect(url_for("manage_products"))
     
-   # Updated category management routes with visible field
 
     @app.route('/admin/categories')
     def manage_categories():
@@ -321,12 +319,15 @@ def register_admin(app, mysql: MySQL):
                 errors['description'] = "Category description is required"
 
             if not errors:
-                with mysql.connection.cursor() as cursor:
-                    cursor.execute('INSERT INTO categories (name, description, visible) VALUES (%s, %s, %s)', (name, desc, visible))
-                    mysql.connection.commit()
-
-                flash("Category created successfully!", "success")
-                return redirect(url_for("manage_categories"))
+                try:
+                    with mysql.connection.cursor() as cursor:
+                        cursor.execute('INSERT INTO categories (name, description, visible) VALUES (%s, %s, %s)', (name, desc, visible))
+                        mysql.connection.commit()
+                    flash("Category created successfully!", "success")
+                    return redirect(url_for("manage_categories"))
+                except Exception:
+                    mysql.connection.rollback()
+                    errors['database'] = "A database error occurred while creating the category."
             
         return render_template("admin/category/add_category.html", title="Create Category", errors=errors)
 
@@ -354,22 +355,28 @@ def register_admin(app, mysql: MySQL):
                 errors['description'] = "Category description is required"
 
             if not errors:
-                with mysql.connection.cursor() as cursor:
-                    cursor.execute('UPDATE categories SET name=%s, description=%s, visible=%s WHERE category_id=%s', (name, desc, visible, id))
-                    mysql.connection.commit()
-
-                flash("Category updated successfully!", "success")
-                return redirect(url_for("manage_categories"))
+                try:
+                    with mysql.connection.cursor() as cursor:
+                        cursor.execute('UPDATE categories SET name=%s, description=%s, visible=%s WHERE category_id=%s', (name, desc, visible, id))
+                        mysql.connection.commit()
+                    flash("Category updated successfully!", "success")
+                    return redirect(url_for("manage_categories"))
+                except Exception:
+                    mysql.connection.rollback()
+                    errors['database'] = "A database error occurred while updating the category."
 
         return render_template("admin/category/edit_category.html", category=category, errors=errors)
 
     @app.route("/admin/category/delete/<int:id>", methods=["POST"])
     def delete_category(id):
-        with mysql.connection.cursor() as cursor:
-            cursor.execute('DELETE FROM `categories` WHERE category_id = %s', (id,))
-            mysql.connection.commit()
-
-        flash("Category deleted successfully!", "success")
+        try:
+            with mysql.connection.cursor() as cursor:
+                cursor.execute('DELETE FROM `categories` WHERE category_id = %s', (id,))
+                mysql.connection.commit()
+            flash("Category deleted successfully!", "success")
+        except Exception:
+            mysql.connection.rollback()
+            flash("Category cannot be deleted. It may contain products or be referenced by existing orders.", "danger")
         return redirect(url_for("manage_categories"))
 
     @app.route("/admin/users")
@@ -420,14 +427,20 @@ def register_admin(app, mysql: MySQL):
             user = cursor.fetchone()
 
             if request.method == "POST":
-                status = int(request.form['status'])
-
-                with mysql.connection.cursor() as cursor:
-                    cursor.execute('UPDATE `users` SET `status`=%s WHERE user_id = %s', (status, user_id))
-                    mysql.connection.commit()
-
-                flash("User updated successfully!", "success")
-                return redirect(url_for("manage_users"))
+                status_raw = request.form.get('status', '')
+                if status_raw not in ['0', '1']:
+                    errors['status'] = "Invalid status selected."
+                else:
+                    status = int(status_raw)
+                    try:
+                        with mysql.connection.cursor() as cursor:
+                            cursor.execute('UPDATE `users` SET `status`=%s WHERE user_id = %s', (status, user_id))
+                            mysql.connection.commit()
+                        flash("User updated successfully!", "success")
+                        return redirect(url_for("manage_users"))
+                    except Exception:
+                        mysql.connection.rollback()
+                        errors['database'] = "A database error occurred while updating the user."
 
         return render_template('admin/user/edit_user.html', title="Edit User", user=user, errors=errors)
     
@@ -454,12 +467,15 @@ def register_admin(app, mysql: MySQL):
                 errors['confirm'] = "Password don't match."
 
             if not errors:
-                with mysql.connection.cursor() as cursor:
-                    cursor.execute('UPDATE `users` SET `password`=%s WHERE user_id = %s', (generate_password_hash(new), user_id))
-                    mysql.connection.commit()
-
-                flash("Password reset successfully!", "success")
-                return redirect(url_for("manage_users"))
+                try:
+                    with mysql.connection.cursor() as cursor:
+                        cursor.execute('UPDATE `users` SET `password`=%s WHERE user_id = %s', (generate_password_hash(new), user_id))
+                        mysql.connection.commit()
+                    flash("Password reset successfully!", "success")
+                    return redirect(url_for("manage_users"))
+                except Exception:
+                    mysql.connection.rollback()
+                    errors['database'] = "A database error occurred while resetting the password."
 
         return render_template('admin/user/reset_password.html', title="Reset Password", user=user, errors=errors)
 
@@ -539,21 +555,25 @@ def register_admin(app, mysql: MySQL):
             flash("Tracking number is required to approve order.", "danger")
             return redirect(url_for('view_order', order_id=order_id))
 
-        with mysql.connection.cursor() as cursor:
-            cursor.execute("""
-                UPDATE orders 
-                SET status='Processing', tracking_number=%s 
-                WHERE order_id=%s
-            """, (tracking_number, order_id))
+        try:
+            with mysql.connection.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE orders 
+                    SET status='Processing', tracking_number=%s 
+                    WHERE order_id=%s
+                """, (tracking_number, order_id))
 
-            cursor.execute("""
-                INSERT INTO order_status_history (order_id, status, changed_at)
-                VALUES (%s, %s, %s)
-            """, (order_id, 'Processing', datetime.now()))
+                cursor.execute("""
+                    INSERT INTO order_status_history (order_id, status, changed_at)
+                    VALUES (%s, %s, %s)
+                """, (order_id, 'Processing', datetime.now()))
 
-            mysql.connection.commit()
+                mysql.connection.commit()
+            flash("Order approved successfully!", "success")
+        except Exception:
+            mysql.connection.rollback()
+            flash("A database error occurred while approving the order.", "danger")
 
-        flash("Order approved successfully!", "success")
         return redirect(url_for('view_order', order_id=order_id))
 
     @app.route('/admin/orders/<int:order_id>/decline', methods=['POST'])
@@ -564,35 +584,39 @@ def register_admin(app, mysql: MySQL):
             flash("Decline reason is required.", "danger")
             return redirect(url_for('view_order', order_id=order_id))
 
-        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute("""
-                SELECT oi.product_id, oi.quantity
-                FROM orderitems oi
-                WHERE oi.order_id = %s
-            """, (order_id,))
-            order_items = cursor.fetchall()
-
-            for item in order_items:
+        try:
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                 cursor.execute("""
-                    UPDATE inventories 
-                    SET quantity = quantity + %s 
-                    WHERE product_id = %s
-                """, (item['quantity'], item['product_id']))
+                    SELECT oi.product_id, oi.quantity
+                    FROM orderitems oi
+                    WHERE oi.order_id = %s
+                """, (order_id,))
+                order_items = cursor.fetchall()
 
-            cursor.execute("""
-                UPDATE orders 
-                SET status='Cancelled', decline_reason=%s 
-                WHERE order_id=%s
-            """, (decline_reason, order_id))
+                for item in order_items:
+                    cursor.execute("""
+                        UPDATE inventories 
+                        SET quantity = quantity + %s 
+                        WHERE product_id = %s
+                    """, (item['quantity'], item['product_id']))
 
-            cursor.execute("""
-                INSERT INTO order_status_history (order_id, status, changed_at)
-                VALUES (%s, %s, %s)
-            """, (order_id, 'Cancelled', datetime.now()))
+                cursor.execute("""
+                    UPDATE orders 
+                    SET status='Cancelled', decline_reason=%s 
+                    WHERE order_id=%s
+                """, (decline_reason, order_id))
 
-            mysql.connection.commit()
+                cursor.execute("""
+                    INSERT INTO order_status_history (order_id, status, changed_at)
+                    VALUES (%s, %s, %s)
+                """, (order_id, 'Cancelled', datetime.now()))
 
-        flash("Order declined successfully. Stock has been restored.", "success")
+                mysql.connection.commit()
+            flash("Order declined successfully. Stock has been restored.", "success")
+        except Exception:
+            mysql.connection.rollback()
+            flash("A database error occurred while declining the order.", "danger")
+
         return redirect(url_for('view_order', order_id=order_id))
 
     @app.route('/admin/orders/<int:order_id>/update-status', methods=['POST'])
@@ -604,28 +628,32 @@ def register_admin(app, mysql: MySQL):
             flash("Invalid status.", "danger")
             return redirect(url_for('view_order', order_id=order_id))
 
-        with mysql.connection.cursor() as cursor:
-            cursor.execute("""
-                UPDATE orders 
-                SET status=%s 
-                WHERE order_id=%s
-            """, (new_status, order_id))
-
-            if new_status == 'Delivered':
+        try:
+            with mysql.connection.cursor() as cursor:
                 cursor.execute("""
-                    UPDATE payments 
+                    UPDATE orders 
                     SET status=%s 
                     WHERE order_id=%s
-                """, ('Paid', order_id))
+                """, (new_status, order_id))
 
-            cursor.execute("""
-                INSERT INTO order_status_history (order_id, status, changed_at)
-                VALUES (%s, %s, %s)
-            """, (order_id, new_status, datetime.now()))
+                if new_status == 'Delivered':
+                    cursor.execute("""
+                        UPDATE payments 
+                        SET status=%s 
+                        WHERE order_id=%s
+                    """, ('Paid', order_id))
 
-            mysql.connection.commit()
+                cursor.execute("""
+                    INSERT INTO order_status_history (order_id, status, changed_at)
+                    VALUES (%s, %s, %s)
+                """, (order_id, new_status, datetime.now()))
 
-        flash(f"Order status updated to {new_status}!", "success")
+                mysql.connection.commit()
+            flash(f"Order status updated to {new_status}!", "success")
+        except Exception:
+            mysql.connection.rollback()
+            flash("A database error occurred while updating order status.", "danger")
+
         return redirect(url_for('view_order', order_id=order_id))
             
     @app.route('/admin/reports')

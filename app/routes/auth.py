@@ -53,7 +53,6 @@ def register_auth(app, mysql):
                             session['user'] = user
                             print(f'User: {user}')
 
-                            # --- TRANSFER GUEST CART TO USER CART ---
                             if 'session_id' in session:
                                 guest_session_id = session['session_id']
                                 user_id = user['user_id']
@@ -61,7 +60,6 @@ def register_auth(app, mysql):
                                 print(f"Transferring guest cart (session_id={guest_session_id}) to user cart for user_id={user_id}")
 
                                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                                    # Check if there are guest cart items for this session_id
                                     cursor.execute("""
                                         SELECT product_id, quantity
                                         FROM guestcart
@@ -70,7 +68,6 @@ def register_auth(app, mysql):
                                     guest_items = cursor.fetchall()
 
                                     if guest_items:
-                                        # Get or create user cart
                                         cursor.execute("SELECT cart_id FROM cart WHERE user_id = %s", (user_id,))
                                         user_cart = cursor.fetchone()
 
@@ -84,12 +81,10 @@ def register_auth(app, mysql):
                                         else:
                                             cart_id = user_cart['cart_id']
 
-                                        # Transfer each guest cart item to the user's cart
                                         for item in guest_items:
                                             product_id = item['product_id']
                                             quantity = item['quantity']
 
-                                            # If the item already exists in the user cart, update it
                                             cursor.execute("""
                                                 SELECT cart_item_id, quantity FROM cartitems
                                                 WHERE cart_id = %s AND product_id = %s
@@ -109,7 +104,6 @@ def register_auth(app, mysql):
                                                     VALUES (%s, %s, %s)
                                                 """, (cart_id, product_id, quantity))
 
-                                        # Clear transferred guest cart
                                         cursor.execute("DELETE FROM guestcart WHERE session_id = %s", (guest_session_id,))
                                         mysql.connection.commit()
 
@@ -187,14 +181,18 @@ def register_auth(app, mysql):
 
             if not province:
                 errors['province'] = "Province is required."
+            elif not province.isdigit():
+                errors['province'] = "Invalid province format."
 
             if not municipality:
                 errors['municipality'] = "Municipality is required."
-
-
+            elif not municipality.isdigit():
+                errors['municipality'] = "Invalid municipality format."
 
             if not barangay:
                 errors['barangay'] = "Barangay is required."
+            elif not barangay.isdigit():
+                errors['barangay'] = "Invalid barangay format."
 
             if not password:
                 errors['password'] = "Password is required."
@@ -207,89 +205,83 @@ def register_auth(app, mysql):
                 errors['confirm_password'] = "Passwords do not match."
 
             if not errors:
-                with mysql.connection.cursor() as cursor:
-                    cursor.execute("INSERT INTO users (firstname, middlename, lastname, email, phone, province, municipality, barangay, password) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (first_name.title(), middle_name.title(), last_name.title(), email, phone, int(province), int(municipality), int(barangay), generate_password_hash(password)))
-
-                    mysql.connection.commit()
-                    inserted_id = cursor.lastrowid
-                
-                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute("SELECT * FROM users WHERE user_id = %s", (inserted_id,))
-
-                    user = cursor.fetchone()
-
-                session['is_loggedin'] = True
-                session['user_role'] = 'customer'
-                session['user'] = user
-                print(f"User: {user}")
-
-                # --- TRANSFER GUEST CART TO USER CART ---
-                if 'session_id' in session:
-                    guest_session_id = session['session_id']
-                    user_id = session['user']['user_id']
-
-                    print(f"Transferring guest cart (session_id={guest_session_id}) to user cart for user_id={user_id}")
-
+                try:
+                    with mysql.connection.cursor() as cursor:
+                        cursor.execute("INSERT INTO users (firstname, middlename, lastname, email, phone, province, municipality, barangay, password) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (first_name.title(), middle_name.title(), last_name.title(), email, phone, int(province), int(municipality), int(barangay), generate_password_hash(password)))
+                        mysql.connection.commit()
+                        inserted_id = cursor.lastrowid
+                    
                     with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        # Check if there are guest cart items for this session_id
-                        cursor.execute("""
-                            SELECT product_id, quantity
-                            FROM guestcart
-                            WHERE session_id = %s
-                        """, (guest_session_id,))
-                        guest_items = cursor.fetchall()
+                        cursor.execute("SELECT * FROM users WHERE user_id = %s", (inserted_id,))
+                        user = cursor.fetchone()
 
-                        if guest_items:
-                            # Get or create user cart
-                            cursor.execute("SELECT cart_id FROM cart WHERE user_id = %s", (user_id,))
-                            user_cart = cursor.fetchone()
+                    session['is_loggedin'] = True
+                    session['user_role'] = 'customer'
+                    session['user'] = user
+                    print(f"User: {user}")
 
-                            if not user_cart:
-                                cursor.execute(
-                                    "INSERT INTO cart (user_id, created_at) VALUES (%s, %s)",
-                                    (user_id, datetime.now())
-                                )
-                                mysql.connection.commit()
-                                cart_id = cursor.lastrowid
-                            else:
-                                cart_id = user_cart['cart_id']
+                    if 'session_id' in session:
+                        guest_session_id = session['session_id']
+                        user_id = session['user']['user_id']
+                        print(f"Transferring guest cart (session_id={guest_session_id}) to user cart for user_id={user_id}")
 
-                            # Transfer each guest cart item to the user's cart
-                            for item in guest_items:
-                                product_id = item['product_id']
-                                quantity = item['quantity']
+                        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                            cursor.execute("""
+                                SELECT product_id, quantity
+                                FROM guestcart
+                                WHERE session_id = %s
+                            """, (guest_session_id,))
+                            guest_items = cursor.fetchall()
 
-                                # If the item already exists in the user cart, update it
-                                cursor.execute("""
-                                    SELECT cart_item_id, quantity FROM cartitems
-                                    WHERE cart_id = %s AND product_id = %s
-                                """, (cart_id, product_id))
-                                existing_item = cursor.fetchone()
+                            if guest_items:
+                                cursor.execute("SELECT cart_id FROM cart WHERE user_id = %s", (user_id,))
+                                user_cart = cursor.fetchone()
 
-                                if existing_item:
-                                    new_quantity = existing_item['quantity'] + quantity
-                                    cursor.execute("""
-                                        UPDATE cartitems
-                                        SET quantity = %s
-                                        WHERE cart_item_id = %s
-                                    """, (new_quantity, existing_item['cart_item_id']))
+                                if not user_cart:
+                                    cursor.execute(
+                                        "INSERT INTO cart (user_id, created_at) VALUES (%s, %s)",
+                                        (user_id, datetime.now())
+                                    )
+                                    mysql.connection.commit()
+                                    cart_id = cursor.lastrowid
                                 else:
+                                    cart_id = user_cart['cart_id']
+
+                                for item in guest_items:
+                                    product_id = item['product_id']
+                                    quantity = item['quantity']
+
                                     cursor.execute("""
-                                        INSERT INTO cartitems (cart_id, product_id, quantity)
-                                        VALUES (%s, %s, %s)
-                                    """, (cart_id, product_id, quantity))
+                                        SELECT cart_item_id, quantity FROM cartitems
+                                        WHERE cart_id = %s AND product_id = %s
+                                    """, (cart_id, product_id))
+                                    existing_item = cursor.fetchone()
 
-                            # Clear transferred guest cart
-                            cursor.execute("DELETE FROM guestcart WHERE session_id = %s", (guest_session_id,))
-                            mysql.connection.commit()
+                                    if existing_item:
+                                        new_quantity = existing_item['quantity'] + quantity
+                                        cursor.execute("""
+                                            UPDATE cartitems
+                                            SET quantity = %s
+                                            WHERE cart_item_id = %s
+                                        """, (new_quantity, existing_item['cart_item_id']))
+                                    else:
+                                        cursor.execute("""
+                                            INSERT INTO cartitems (cart_id, product_id, quantity)
+                                            VALUES (%s, %s, %s)
+                                        """, (cart_id, product_id, quantity))
 
-                            print(f"Guest cart items transferred and cleared for session_id={guest_session_id}")
+                                cursor.execute("DELETE FROM guestcart WHERE session_id = %s", (guest_session_id,))
+                                mysql.connection.commit()
+                                print(f"Guest cart items transferred and cleared for session_id={guest_session_id}")
 
-                flash(f"Welcome, {first_name.title()} {last_name.title()}! Your account has been created successfully.", 'success')
-                if session.get('checkout_auth', False):
-                    return redirect(url_for('cart'))
-
-                return redirect(url_for('customer_dashboard'))
+                    flash(f"Welcome, {first_name.title()} {last_name.title()}! Your account has been created successfully.", 'success')
+                    if session.get('checkout_auth', False):
+                        return redirect(url_for('cart'))
+                    return redirect(url_for('customer_dashboard'))
+                except Exception as e:
+                    mysql.connection.rollback()
+                    print(f"Error during registration: {e}")
+                    errors['database'] = "A database error occurred. Please try again."
                 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM provinces')

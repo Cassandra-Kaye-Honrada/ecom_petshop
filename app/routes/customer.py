@@ -38,7 +38,6 @@ def register_customer(app, mysql):
             LIMIT 6""")
             products = cursor.fetchall()
 
-            # Get new product (based on a 'created_at' column)
             cursor.execute("""
                 SELECT p.product_id, p.name AS ProductName, p.img_path AS Image, 'New' AS tag
                 FROM products p
@@ -49,7 +48,6 @@ def register_customer(app, mysql):
             """)
             new_product = cursor.fetchone()
 
-            # Get popular product (based on a 'views' or 'sales' column)
             cursor.execute("""
                 SELECT 
                     p.product_id, 
@@ -73,7 +71,6 @@ def register_customer(app, mysql):
             if popular_product:
                 featured_products.append(popular_product)
 
-            # Fallback: get first 2 products if none found
             if not featured_products:
                 cursor.execute("""
                     SELECT p.product_id, p.name AS ProductName, p.img_path AS Image, 'Default' AS tag
@@ -94,7 +91,6 @@ def register_customer(app, mysql):
     @app.route('/plantify/products')
     def products():
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            # Only show visible categories
             cursor.execute("SELECT * FROM categories WHERE visible = 1")
             categories = cursor.fetchall()
 
@@ -257,7 +253,6 @@ def register_customer(app, mysql):
                 return jsonify({'success': False, 'error': 'Delivery address is required'}), 400
             
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                # Get cart items - only from visible categories
                 cursor.execute("""
                     SELECT ci.product_id, ci.quantity, p.price, i.quantity AS stock
                     FROM cart c
@@ -272,7 +267,6 @@ def register_customer(app, mysql):
                 if not cart_items:
                     return jsonify({'success': False, 'error': 'Cart is empty'}), 400
                 
-                # Check stock availability
                 for item in cart_items:
                     if item['stock'] < item['quantity']:
                         return jsonify({
@@ -280,7 +274,6 @@ def register_customer(app, mysql):
                             'error': f'Insufficient stock for product ID {item["product_id"]}'
                         }), 400
                 
-                # Calculate total
                 subtotal = Decimal('0.00')
                 for item in cart_items:
                     subtotal += Decimal(str(item['price'])) * item['quantity']
@@ -288,7 +281,6 @@ def register_customer(app, mysql):
                 shipping = Decimal('50.00')
                 total_amount = subtotal + shipping
 
-                # Get location details
                 cursor.execute("""
                     SELECT barangay_name as barangay FROM `barangays` WHERE barangay_id = %s
                 """, (session['user']['barangay'], ))
@@ -306,14 +298,12 @@ def register_customer(app, mysql):
 
                 delivery_addr = f"{addr}, {brgy['barangay']}, {muni['municipality']}, {prov['province']}"
                 
-                # Create order
                 cursor.execute("""
                     INSERT INTO orders (user_id, order_date, status, total_amount, delivery_address)
                     VALUES (%s, %s, %s, %s, %s)
                 """, (user_id, datetime.now(), 'Pending', total_amount, delivery_addr))
                 order_id = cursor.lastrowid
                 
-                # Create order items and update inventory
                 for item in cart_items:
                     item_subtotal = Decimal(str(item['price'])) * item['quantity']
                     
@@ -329,7 +319,6 @@ def register_customer(app, mysql):
                         WHERE product_id = %s
                     """, (item['quantity'], item['product_id']))
                 
-                # Handle payment proof upload
                 payment_path = None
                 if payment_method == 'OL' and receipt:
                     filename = f"{int(time.time())}_{secure_filename(receipt.filename)}"
@@ -350,7 +339,6 @@ def register_customer(app, mysql):
                     VALUES (%s, %s, %s)
                 """, (order_id, 'Pending', datetime.now()))
                 
-                # Clear cart
                 cursor.execute("""
                     DELETE ci FROM cartitems ci
                     JOIN cart c ON ci.cart_id = c.cart_id
@@ -383,7 +371,6 @@ def register_customer(app, mysql):
             if not product_id or quantity < 1:
                 return jsonify({'success': False, 'error': 'Invalid product or quantity'}), 400
             
-            # Verify product exists, get stock, AND check category visibility
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                 cursor.execute("""
                     SELECT p.product_id, p.name, i.quantity AS stock
@@ -525,7 +512,6 @@ def register_customer(app, mysql):
                     is_loggedin=True
                 )
         
-        # Guest cart
         if 'session_id' not in session:
             session['session_id'] = str(uuid.uuid4())
         
@@ -680,6 +666,9 @@ def register_customer(app, mysql):
             if not all([name, email, subject, message]):
                 return jsonify({'error': 'All fields are required'}), 400
             
+            if "@" not in email:
+                return jsonify({'error': 'Invalid email format'}), 400
+            
             if len(message) < 10:
                 return jsonify({'error': 'Message must be at least 10 characters'}), 400
             
@@ -793,19 +782,26 @@ def register_customer(app, mysql):
                 barangays=barangays
             )
         
-        # POST - Update profile
         try:
             firstname = request.form.get('firstname', '').strip()
             middlename = request.form.get('middlename', '').strip()
             lastname = request.form.get('lastname', '').strip()
             phone = request.form.get('phone', '').strip()
-            province = request.form.get('province', type=int)
-            municipality = request.form.get('municipality', type=int)
-            barangay = request.form.get('barangay', type=int)
+            province_raw = request.form.get('province', '').strip()
+            municipality_raw = request.form.get('municipality', '').strip()
+            barangay_raw = request.form.get('barangay', '').strip()
             
             if not all([firstname, lastname, phone]):
                 flash('First name, last name, and phone are required', 'danger')
                 return redirect(url_for('edit_profile'))
+            
+            if not province_raw.isdigit() or not municipality_raw.isdigit() or not barangay_raw.isdigit():
+                flash('Invalid location selection', 'danger')
+                return redirect(url_for('edit_profile'))
+            
+            province = int(province_raw)
+            municipality = int(municipality_raw)
+            barangay = int(barangay_raw)
             
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                 cursor.execute("""
@@ -844,7 +840,6 @@ def register_customer(app, mysql):
         if request.method == 'GET':
             return render_template('customer/change_password.html', title="Change Password")
         
-        # POST - Change password
         try:
             current_password = request.form.get('current_password', '').strip()
             new_password = request.form.get('new_password', '').strip()
@@ -884,7 +879,6 @@ def register_customer(app, mysql):
             flash('An error occurred while changing your password', 'danger')
             return redirect(url_for('change_password'))
 
-        # API Routes for dynamic location loading
     @app.route('/api/municipalities/<int:province_id>', endpoint='customer_get_municipalities')
     def get_municipalities_customer(province_id):
         """Get municipalities for a given province"""
@@ -928,11 +922,9 @@ def register_customer(app, mysql):
     @app.route('/plantify/orders')
     def orders():
         """Display user orders"""
-        # Redirect guests to login
         if not session.get('is_loggedin'):
             return redirect(url_for('login'))
         
-        # Get user_id from nested user dict
         user_data = session.get('user')
         user_id = user_data.get('user_id') if user_data else None
         
@@ -940,7 +932,6 @@ def register_customer(app, mysql):
             return redirect(url_for('login'))
         
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            # Get all orders for the user
             cursor.execute("""
                 SELECT o.order_id, o.order_date, o.status, o.total_amount, 
                     o.delivery_address, o.tracking_number,
@@ -1014,7 +1005,6 @@ def _get_cart_count(mysql, session):
     """Get total items in cart"""
     try:
         if session.get('is_loggedin') == True:
-            # Get user_id from nested user dict
             user_data = session.get('user')
             user_id = user_data.get('user_id') if user_data else None
             
@@ -1029,7 +1019,6 @@ def _get_cart_count(mysql, session):
                     result = cursor.fetchone()
                     return result['total'] if result['total'] else 0
         
-        # Guest cart
         session_id = session.get('session_id')
         if not session_id:
             return 0
@@ -1051,7 +1040,6 @@ def _remove_from_cart_helper(mysql, session, product_id):
     """Helper to remove item from cart"""
     try:
         if session.get('is_loggedin') == True:
-            # Get user_id from nested user dict
             user_data = session.get('user')
             user_id = user_data.get('user_id') if user_data else None
             
